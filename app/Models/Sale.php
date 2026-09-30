@@ -22,7 +22,7 @@ class Sale extends Model
     {
         return [
             'price' => 'decimal:2',
-            'float_value' => 'decimal:6',
+            'float_value' => 'decimal:8',
             'sold_at' => 'datetime',
             'paint_index' => 'integer',
             'raw_json' => 'array',

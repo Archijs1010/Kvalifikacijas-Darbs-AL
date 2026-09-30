@@ -1,0 +1,286 @@
+[
+    {
+        "id": "1025352651652597907",
+        "created_at": "2026-09-30T10:25:22.285604Z",
+        "type": "buy_now",
+        "price": 3361,
+        "state": "sold",
+        "reference": {
+            "base_price": 2567,
+            "float_factor": 1.1902723,
+            "predicted_price": 3250,
+            "keychain_price": 195,
+            "quantity": 12534,
+            "last_updated": "2026-09-30T10:24:24.673021Z",
+            "sticker_overpay": {
+                "total_price": 36
+            }
+        },
+        "item": {
+            "asset_id": "53973974684",
+            "def_index": 7,
+            "paint_index": 282,
+            "paint_seed": 125,
+            "float_value": 0.218822181224823,
+            "icon_url": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiFO0POlPPNSI_-RHGavzOtyufRkASq2lkxx4W-HnNyqJC3FZwYoC5p0Q7FfthW6wdWxPu-371Pdit5HnyXgznQeHYY5wyA",
+            "is_stattrak": false,
+            "is_souvenir": false,
+            "rarity": 5,
+            "quality": 4,
+            "market_hash_name": "AK-47 | Redline (Field-Tested)",
+            "stickers": [
+                {
+                    "stickerId": 8767,
+                    "slot": 2,
+                    "wear": 1,
+                    "offset_x": 0.071386084,
+                    "offset_y": 0.078428745,
+                    "rotation": 36,
+                    "icon_url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjMu0JinHtwM6547z1V3oTxa_m5KyqXYN6_OoPP0-IqbAVz_DxL4m5LY6S3HjlBtzt2vWm934eS7COBhgVMVdA_y6rg",
+                    "name": "Sticker | donk | Austin 2025",
+                    "reference": {
+                        "price": 32,
+                        "quantity": 1162,
+                        "updated_at": "2026-09-29T01:04:02.701952Z"
+                    }
+                },
+                {
+                    "stickerId": 6697,
+                    "slot": 0,
+                    "wear": 1,
+                    "offset_x": 0.19673967,
+                    "offset_y": 0.047639996,
+                    "icon_url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNqgJ3KEtwYnp8jy5kz_fhr9l4L0-DAVuaKsbvY7c_TKW2HCkbYjsbFvGCjixUR14DnVmd2udHrEaVUgWMN3QPlK7EcxjBzAaQ",
+                    "name": "Sticker | Fluxo (Glitter) | Paris 2023",
+                    "reference": {
+                        "price": 5,
+                        "quantity": 439,
+                        "updated_at": "2026-09-29T01:04:02.701952Z"
+                    }
+                }
+            ],
+            "keychains": [
+                {
+                    "stickerId": 37,
+                    "slot": 0,
+                    "offset_x": 9.892599,
+                    "offset_y": 0.5787378,
+                    "offset_z": 4.25596,
+                    "wrapped_sticker": 2780,
+                    "icon_url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjMiuJm-Y6wQlpd-7-VDgfhL9kZDt-CtI-_e8V_U-daWsXTDembp04LY7TCvnxU1w6miAmdr8dSrCaFV1W8BzRLJbtROxxt2yNb7isxue1dxLxtxp-w",
+                    "name": "Sticker Slab | olofmeister | Boston 2018",
+                    "reference": {
+                        "price": 217,
+                        "quantity": 56,
+                        "updated_at": "2026-09-29T05:05:05.608758Z"
+                    }
+                }
+            ],
+            "tradable": 0,
+            "cs2_screenshot_id": "7523589376460751324",
+            "cs2_screenshot_at": "2026-09-30T10:25:36.730961Z",
+            "is_commodity": false,
+            "type": "skin",
+            "rarity_name": "Classified",
+            "type_name": "Skin",
+            "item_name": "AK-47 | Redline",
+            "wear_name": "Field-Tested",
+            "description": "It has been painted using a carbon fiber hydrographic and a dry-transfer decal of a red pinstripe.\\n\\n<i>Never be afraid to push it to the limit</i>",
+            "collection": "The Phoenix Collection",
+            "serialized_inspect": "steam://rungame/730/76561202255233023/+csgo_econ_action_preview%2000109CFDE588C9011807209A022805300438ECA580F303407D6219080210BF441D0000803F2D000010423DDE32923D45409FA03D6214080010A9341D0000803F3D2076493E452822433DA2011B080010251D000000003D16481E41452928143F4DD330884060DC154DDD1466",
+            "gs_sig": "13d267be4ffb3c67486d"
+        },
+        "is_seller": false,
+        "is_watchlisted": false,
+        "watchers": 0,
+        "sold_at": "2026-09-30T10:25:23.886716Z"
+    },
+    {
+        "id": "1021397917883301909",
+        "created_at": "2026-09-19T12:30:40.279098Z",
+        "type": "buy_now",
+        "price": 2548,
+        "state": "sold",
+        "reference": {
+            "base_price": 2567,
+            "float_factor": 0.997539,
+            "predicted_price": 2561,
+            "quantity": 12534,
+            "last_updated": "2026-09-30T06:40:12.829844Z",
+            "sticker_overpay": {
+                "total_price": 348,
+                "predicted_price": 47,
+                "lower_sigma": 0.00576355,
+                "lower_half_sigma": 0.0530244,
+                "upper_half_sigma": 0.235377,
+                "upper_sigma": 0.320977
+            }
+        },
+        "item": {
+            "asset_id": "33922047821",
+            "def_index": 7,
+            "paint_index": 282,
+            "paint_seed": 620,
+            "float_value": 0.3111083507537842,
+            "icon_url": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiFO0POlPPNSI_-RHGavzOtyufRkASq2lkxx4W-HnNyqJC3FZwYoC5p0Q7FfthW6wdWxPu-371Pdit5HnyXgznQeHYY5wyA",
+            "is_stattrak": false,
+            "is_souvenir": false,
+            "rarity": 5,
+            "quality": 4,
+            "market_hash_name": "AK-47 | Redline (Field-Tested)",
+            "stickers": [
+                {
+                    "stickerId": 4039,
+                    "slot": 0,
+                    "icon_url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjMikJ3ee6wQlpd677Fj9RFP3ys_h_HcCvKKvO6A7dfTDCzDDk-gh4bdqTHm2kBh0tm_dzNz9d3yQcEZ-XY62SlBH",
+                    "name": "Sticker | FaZe Clan | Berlin 2019",
+                    "reference": {
+                        "price": 87,
+                        "quantity": 124,
+                        "updated_at": "2026-09-29T04:04:47.263223Z"
+                    }
+                },
+                {
+                    "stickerId": 4039,
+                    "slot": 1,
+                    "icon_url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjMikJ3ee6wQlpd677Fj9RFP3ys_h_HcCvKKvO6A7dfTDCzDDk-gh4bdqTHm2kBh0tm_dzNz9d3yQcEZ-XY62SlBH",
+                    "name": "Sticker | FaZe Clan | Berlin 2019",
+                    "reference": {
+                        "price": 87,
+                        "quantity": 124,
+                        "updated_at": "2026-09-29T04:04:47.263223Z"
+                    }
+                },
+                {
+                    "stickerId": 4039,
+                    "slot": 2,
+                    "icon_url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjMikJ3ee6wQlpd677Fj9RFP3ys_h_HcCvKKvO6A7dfTDCzDDk-gh4bdqTHm2kBh0tm_dzNz9d3yQcEZ-XY62SlBH",
+                    "name": "Sticker | FaZe Clan | Berlin 2019",
+                    "reference": {
+                        "price": 87,
+                        "quantity": 124,
+                        "updated_at": "2026-09-29T04:04:47.263223Z"
+                    }
+                },
+                {
+                    "stickerId": 4039,
+                    "slot": 3,
+                    "icon_url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjMikJ3ee6wQlpd677Fj9RFP3ys_h_HcCvKKvO6A7dfTDCzDDk-gh4bdqTHm2kBh0tm_dzNz9d3yQcEZ-XY62SlBH",
+                    "name": "Sticker | FaZe Clan | Berlin 2019",
+                    "reference": {
+                        "price": 87,
+                        "quantity": 124,
+                        "updated_at": "2026-09-29T04:04:47.263223Z"
+                    }
+                }
+            ],
+            "tradable": 0,
+            "cs2_screenshot_id": "6672050881272019605",
+            "cs2_screenshot_at": "2026-09-19T12:31:11.28183Z",
+            "is_commodity": false,
+            "type": "skin",
+            "rarity_name": "Classified",
+            "type_name": "Skin",
+            "item_name": "AK-47 | Redline",
+            "wear_name": "Field-Tested",
+            "description": "It has been painted using a carbon fiber hydrographic and a dry-transfer decal of a red pinstripe.\\n\\n<i>Never be afraid to push it to the limit</i>",
+            "collection": "The Phoenix Collection",
+            "serialized_inspect": "steam://rungame/730/76561202255233023/+csgo_econ_action_preview%200010CDBEA5AF7E1807209A0228053004389893FDF40340EC04620A080010C71F1D00000000620A080110C71F1D00000000620A080210C71F1D00000000620A080310C71F1D000000007CB1EC25",
+            "gs_sig": "dec5e50864433a54d469"
+        },
+        "is_seller": false,
+        "is_watchlisted": false,
+        "watchers": 3,
+        "sold_at": "2026-09-30T10:14:36.758071Z"
+    },
+    {
+        "id": "1011100247516120496",
+        "created_at": "2026-08-22T02:31:24.342201Z",
+        "type": "buy_now",
+        "price": 1094136,
+        "state": "sold",
+        "reference": {
+            "base_price": 1114571,
+            "float_factor": 1.00559,
+            "predicted_price": 1120800,
+            "quantity": 217,
+            "last_updated": "2026-09-29T09:03:49.716224Z",
+            "sticker_overpay": []
+        },
+        "item": {
+            "asset_id": "53345485814",
+            "def_index": 9,
+            "paint_index": 344,
+            "paint_seed": 444,
+            "float_value": 0.031230954453349113,
+            "icon_url": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_jdk4veqYaF7IfysCnWRxuF4j-B-Xxa_nBovp3Pdwtj9cC_GaAd0DZdwQu9fuhS4kNy0NePntVTbjYpCyyT_3CgY5i9j_a9cBkcCWUKV",
+            "is_stattrak": false,
+            "is_souvenir": false,
+            "rarity": 6,
+            "quality": 4,
+            "market_hash_name": "AWP | Dragon Lore (Factory New)",
+            "tradable": 0,
+            "cs2_screenshot_id": "2245793930774342208",
+            "cs2_screenshot_at": "2026-08-22T02:31:47.809609Z",
+            "is_commodity": false,
+            "type": "skin",
+            "rarity_name": "Covert",
+            "type_name": "Skin",
+            "item_name": "AWP | Dragon Lore",
+            "wear_name": "Factory New",
+            "description": "It has been custom painted with a knotwork dragon.\\n\\n<i>200 keys could never unlock its secrets</i>",
+            "collection": "The Cobblestone Collection",
+            "serialized_inspect": "steam://rungame/730/76561202255233023/+csgo_econ_action_preview%200010F6878EDDC601180920D80228063004388FB0FFE70340BC03D17EDBA8",
+            "gs_sig": "1defc119568eabdb1dcd"
+        },
+        "is_seller": false,
+        "is_watchlisted": false,
+        "watchers": 25,
+        "sold_at": "2026-09-29T15:01:13.84719Z"
+    },
+    {
+        "id": "1024498269490908813",
+        "created_at": "2026-09-28T01:50:21.704339Z",
+        "type": "buy_now",
+        "price": 1064000,
+        "state": "sold",
+        "reference": {
+            "base_price": 1118099,
+            "float_factor": 1.00807,
+            "predicted_price": 1127127,
+            "quantity": 226,
+            "last_updated": "2026-09-28T19:50:37.744951Z",
+            "sticker_overpay": []
+        },
+        "item": {
+            "asset_id": "26527341604",
+            "def_index": 9,
+            "paint_index": 344,
+            "paint_seed": 494,
+            "float_value": 0.029392831027507782,
+            "icon_url": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_jdk4veqYaF7IfysCnWRxuF4j-B-Xxa_nBovp3Pdwtj9cC_GaAd0DZdwQu9fuhS4kNy0NePntVTbjYpCyyT_3CgY5i9j_a9cBkcCWUKV",
+            "is_stattrak": false,
+            "is_souvenir": false,
+            "rarity": 6,
+            "quality": 4,
+            "market_hash_name": "AWP | Dragon Lore (Factory New)",
+            "tradable": 0,
+            "cs2_screenshot_id": "963983396433275149",
+            "cs2_screenshot_at": "2026-09-28T00:50:51.230971Z",
+            "is_commodity": false,
+            "type": "skin",
+            "rarity_name": "Covert",
+            "type_name": "Skin",
+            "item_name": "AWP | Dragon Lore",
+            "wear_name": "Factory New",
+            "description": "It has been custom painted with a knotwork dragon.\\n\\n<i>200 keys could never unlock its secrets</i>",
+            "collection": "The Cobblestone Collection",
+            "serialized_inspect": "steam://rungame/730/76561202255233023/+csgo_econ_action_preview%200010A4B89CE962180920D8022806300438BC92C3E70340EE03660A114B",
+            "gs_sig": "27d26128229f64465031"
+        },
+        "is_seller": false,
+        "is_watchlisted": false,
+        "watchers": 9,
+        "sold_at": "2026-09-28T23:27:35.280688Z"
+    }
+]

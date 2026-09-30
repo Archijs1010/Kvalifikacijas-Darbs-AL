@@ -48,7 +48,7 @@ Route::get('/analytics', function (Request $request) {
         ? $request->input('skin')
         : $skins->first();
 
-    $query = Sale::query()->orderBy('sold_at');
+    $query = Sale::query()->whereNotNull('sold_at')->orderBy('sold_at');
 
     if ($selected) {
         $query->where('market_hash_name', $selected);
