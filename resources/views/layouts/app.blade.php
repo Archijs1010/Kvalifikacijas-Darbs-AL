@@ -23,6 +23,22 @@
 </header>
 
 <main class="mx-auto max-w-5xl px-6 py-8 space-y-6">
+    @if (session('status'))
+        <p class="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-3 text-sm text-emerald-300">
+            {{ session('status') }}
+        </p>
+    @endif
+
+    @if ($errors->any())
+        <div class="rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-3 text-sm text-red-300">
+            <ul class="list-inside list-disc">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     @yield('content')
 </main>
 

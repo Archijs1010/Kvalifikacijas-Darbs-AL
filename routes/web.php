@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\ImportSalesController;
+use App\Http\Controllers\ImportSkinSalesController;
+use App\Http\Controllers\TrackedSkinController;
 use App\Models\Sale;
 use App\Models\TrackedSkin;
 use Illuminate\Http\Request;
@@ -13,11 +15,13 @@ Route::get('/', function () {
     ]);
 })->name('dashboard');
 
-Route::get('/skins', function () {
-    return view('skins.index', [
-        'skins' => TrackedSkin::orderBy('market_hash_name')->get(),
-    ]);
-})->name('skins.index');
+Route::get('/skins', [TrackedSkinController::class, 'index'])->name('skins.index');
+Route::post('/skins', [TrackedSkinController::class, 'store'])->name('skins.store');
+Route::get('/skins/{skin}/edit', [TrackedSkinController::class, 'edit'])->name('skins.edit');
+Route::put('/skins/{skin}', [TrackedSkinController::class, 'update'])->name('skins.update');
+Route::patch('/skins/{skin}/toggle', [TrackedSkinController::class, 'toggle'])->name('skins.toggle');
+Route::post('/skins/{skin}/import', ImportSkinSalesController::class)->name('skins.import');
+Route::delete('/skins/{skin}', [TrackedSkinController::class, 'destroy'])->name('skins.destroy');
 
 Route::get('/sales', function (Request $request) {
     $query = Sale::query();

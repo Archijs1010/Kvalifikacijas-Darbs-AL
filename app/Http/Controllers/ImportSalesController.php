@@ -2,71 +2,44 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Sale;
 use App\Models\TrackedSkin;
-use App\Services\CSFloatSaleMapper;
-use App\Services\CSFloatService;
+use App\Services\SalesImporter;
 use Illuminate\Http\JsonResponse;
-use Throwable;
 
 class ImportSalesController extends Controller
 {
-    public function __construct(private readonly CSFloatSaleMapper $mapper) {}
+    public function __construct(private readonly SalesImporter $importer) {}
 
-    public function __invoke(CSFloatService $csfloat): JsonResponse
+    public function __invoke(): JsonResponse
     {
         $imported = 0;
         $skipped = 0;
         $malformed = 0;
+        $outOfRange = 0;
         $failedSkins = [];
 
         $skins = TrackedSkin::query()->where('enabled', true)->get();
 
         foreach ($skins as $skin) {
-            try {
-                $sales = $this->mapper->salesList($csfloat->getSales($skin->market_hash_name));
-            } catch (Throwable) {
+            $result = $this->importer->importSkin($skin);
+
+            if ($result['failed']) {
                 $failedSkins[] = $skin->market_hash_name;
 
                 continue;
             }
 
-            $existingSaleIds = Sale::query()
-                ->where('market_hash_name', $skin->market_hash_name)
-                ->pluck('sale_id');
-
-            foreach ($sales as $entry) {
-                $attributes = $this->mapper->map($entry, $skin->market_hash_name);
-
-                if ($attributes === null) {
-                    $malformed++;
-
-                    continue;
-                }
-
-                if ($attributes['price'] === null || $attributes['market_hash_name'] === null) {
-                    $malformed++;
-
-                    continue;
-                }
-
-                if ($existingSaleIds->contains($attributes['sale_id'])) {
-                    $skipped++;
-
-                    continue;
-                }
-
-                Sale::create($attributes);
-
-                $existingSaleIds->push($attributes['sale_id']);
-                $imported++;
-            }
+            $imported += $result['imported'];
+            $skipped += $result['skipped_duplicates'];
+            $malformed += $result['skipped_malformed'];
+            $outOfRange += $result['skipped_out_of_range'];
         }
 
         return response()->json([
             'imported' => $imported,
             'skipped' => $skipped,
             'malformed' => $malformed,
+            'out_of_range' => $outOfRange,
             'failed_skins' => $failedSkins,
         ]);
     }

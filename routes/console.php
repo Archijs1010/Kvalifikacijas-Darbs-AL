@@ -19,6 +19,7 @@ Artisan::command('csfloat:test', function (CSFloatService $csfloat) {
 
     if ($response->failed()) {
         $this->error('Request failed.');
+
         return;
     }
 
@@ -26,6 +27,7 @@ Artisan::command('csfloat:test', function (CSFloatService $csfloat) {
 
     if ($payload === null) {
         $this->error('No JSON payload returned.');
+
         return;
     }
 
@@ -43,6 +45,7 @@ Artisan::command('csfloat:test', function (CSFloatService $csfloat) {
 
     if ($first === null) {
         $this->warn('No sales to display.');
+
         return;
     }
 
