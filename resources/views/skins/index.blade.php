@@ -9,8 +9,9 @@
         <h2 class="text-sm font-medium">Add a skin</h2>
 
         <form method="POST" action="{{ route('skins.store') }}"
-              class="mt-4 grid gap-4 sm:grid-cols-[1fr_8rem_8rem_auto] sm:items-end">
+              class="mt-4 grid gap-4 sm:grid-cols-[1fr_8rem_8rem_9rem_auto] sm:items-end">
             @csrf
+            @include('skins._phase-options')
 
             <div class="flex flex-col gap-1">
                 <label for="market_hash_name" class="text-xs uppercase tracking-wide text-zinc-500">Market hash name</label>
@@ -21,6 +22,12 @@
                 @error('market_hash_name')
                     <p class="text-xs text-red-400">{{ $message }}</p>
                 @enderror
+                <p class="text-xs text-zinc-500">
+                    Must match the CSFloat name exactly, including the star
+                    (<span class="text-zinc-300">★</span>) and the wear suffix.
+                    Example: <span class="text-zinc-300">★ Karambit | Doppler (Factory New)</span>
+                    or <span class="text-zinc-300">AK-47 | Redline (Field-Tested)</span>.
+                </p>
             </div>
 
             <div class="flex flex-col gap-1">
@@ -39,6 +46,17 @@
                        value="{{ old('max_float') }}"
                        class="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none">
                 @error('max_float')
+                    <p class="text-xs text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="flex flex-col gap-1">
+                <label for="phase" class="text-xs uppercase tracking-wide text-zinc-500">Phase</label>
+                <input id="phase" name="phase" type="text" list="phase-options"
+                       value="{{ old('phase') }}"
+                       placeholder="Any"
+                       class="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none">
+                @error('phase')
                     <p class="text-xs text-red-400">{{ $message }}</p>
                 @enderror
             </div>
@@ -64,6 +82,7 @@
                 <th class="px-5 py-3 font-medium">Skin</th>
                 <th class="px-5 py-3 font-medium">Min Float</th>
                 <th class="px-5 py-3 font-medium">Max Float</th>
+                <th class="px-5 py-3 font-medium">Phase</th>
                 <th class="px-5 py-3 font-medium">Status</th>
                 <th class="px-5 py-3 font-medium">Import</th>
                 <th class="px-5 py-3 font-medium text-right">Actions</th>
@@ -75,6 +94,7 @@
                     <td class="px-5 py-3">{{ $skin->market_hash_name }}</td>
                     <td class="px-5 py-3 text-zinc-400">{{ $skin->min_float ?? '—' }}</td>
                     <td class="px-5 py-3 text-zinc-400">{{ $skin->max_float ?? '—' }}</td>
+                    <td class="px-5 py-3 text-zinc-400">{{ $skin->phase ?? '—' }}</td>
                     <td class="px-5 py-3">
                         @if ($skin->enabled)
                             <span class="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs text-emerald-400">Enabled</span>
@@ -117,7 +137,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="px-5 py-8 text-center text-zinc-500">No tracked skins yet.</td>
+                    <td colspan="7" class="px-5 py-8 text-center text-zinc-500">No tracked skins yet.</td>
                 </tr>
             @endforelse
             </tbody>
@@ -146,11 +166,28 @@
                     const data = await res.json();
                     if (!res.ok) throw new Error(data.message || 'Import failed');
 
-                    status.textContent = `Imported ${data.imported} · Skipped ${data.skipped}`;
-                    status.classList.add(data.imported > 0 ? 'text-emerald-400' : 'text-zinc-400');
+                    if (data.no_sales) {
+                        status.className = 'js-import-status ml-2 text-xs text-amber-400';
+                        status.textContent = 'No sales found for this name';
+                        status.title = 'CSFloat has no sales recorded for this exact market hash '
+                            + 'name. Check the star (★) and the wear suffix — they must match exactly.';
+                    } else {
+                        const parts = [`Imported ${data.imported}`];
+                        if (data.skipped_wrong_phase) parts.push(`${data.skipped_wrong_phase} wrong phase`);
+                        if (data.skipped_out_of_range) parts.push(`${data.skipped_out_of_range} out of float range`);
+                        if (data.skipped_duplicates) parts.push(`${data.skipped_duplicates} already stored`);
+                        if (data.skipped_malformed) parts.push(`${data.skipped_malformed} unreadable`);
+                        if (parts.length === 1 && data.skipped) parts.push(`Skipped ${data.skipped}`);
+
+                        status.className = 'js-import-status ml-2 text-xs '
+                            + (data.imported > 0 ? 'text-emerald-400' : 'text-zinc-400');
+                        status.textContent = parts.join(' · ');
+                        status.title = '';
+                    }
                 } catch {
+                    status.className = 'js-import-status ml-2 text-xs text-red-400';
                     status.textContent = 'Import failed.';
-                    status.classList.add('text-red-400');
+                    status.title = '';
                 } finally {
                     btn.disabled = false;
                     btn.textContent = 'Import';

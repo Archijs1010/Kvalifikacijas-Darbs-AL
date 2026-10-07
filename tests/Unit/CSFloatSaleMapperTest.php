@@ -21,6 +21,116 @@ class CSFloatSaleMapperTest extends TestCase
     }
 
     #[Test]
+    public function it_reads_paint_seed_from_the_nested_item_object(): void
+    {
+        $entry = $this->csfloatSaleEntry(0);
+
+        $this->assertArrayNotHasKey('paint_seed', $entry, 'Fixture sanity: paint_seed is not top level.');
+        $this->assertSame($entry['item']['paint_seed'], $this->mapper->map($entry)['paint_seed']);
+        $this->assertSame(125, $this->mapper->map($entry)['paint_seed']);
+    }
+
+    #[Test]
+    public function it_reads_a_different_seed_per_item_instance(): void
+    {
+        $this->assertSame(125, $this->mapper->map($this->csfloatSaleEntry(0))['paint_seed']);
+        $this->assertSame(620, $this->mapper->map($this->csfloatSaleEntry(1))['paint_seed']);
+        $this->assertSame(444, $this->mapper->map($this->csfloatSaleEntry(2))['paint_seed']);
+    }
+
+    #[Test]
+    public function it_reads_a_numeric_string_paint_seed(): void
+    {
+        $mapped = $this->mapper->map([
+            'id' => '1',
+            'price' => 100,
+            'item' => ['market_hash_name' => 'AK-47 | Case Hardened (Field-Tested)', 'paint_seed' => '661'],
+        ]);
+
+        $this->assertSame(661, $mapped['paint_seed']);
+    }
+
+    #[Test]
+    public function it_leaves_paint_seed_null_when_csfloat_omits_it(): void
+    {
+        $mapped = $this->mapper->map([
+            'id' => '1',
+            'price' => 100,
+            'item' => ['market_hash_name' => 'AWP | Dragon Lore (Factory New)'],
+        ]);
+
+        $this->assertNull($mapped['paint_seed']);
+    }
+
+    #[Test]
+    public function it_reads_the_phase_from_the_nested_item_object(): void
+    {
+        $mapped = $this->mapper->map([
+            'id' => '1',
+            'price' => 100,
+            'sold_at' => '2026-01-01T00:00:00Z',
+            'item' => [
+                'market_hash_name' => '★ Karambit | Doppler (Factory New)',
+                'phase' => 'Phase 4',
+            ],
+        ]);
+
+        $this->assertSame('Phase 4', $mapped['phase']);
+    }
+
+    #[Test]
+    public function it_reads_variant_names_as_phases(): void
+    {
+        foreach (['Phase 1', 'Black Pearl', 'Ruby', 'Sapphire', 'Emerald'] as $phase) {
+            $mapped = $this->mapper->map([
+                'id' => '1',
+                'price' => 100,
+                'item' => ['market_hash_name' => '★ Karambit | Doppler (Factory New)', 'phase' => $phase],
+            ]);
+
+            $this->assertSame($phase, $mapped['phase']);
+        }
+    }
+
+    #[Test]
+    public function it_trims_the_phase_and_treats_an_empty_one_as_absent(): void
+    {
+        $this->assertSame('Phase 4', $this->mapper->map([
+            'id' => '1',
+            'price' => 100,
+            'item' => ['phase' => '  Phase 4  '],
+        ])['phase']);
+
+        $this->assertNull($this->mapper->map([
+            'id' => '1',
+            'price' => 100,
+            'item' => ['phase' => '   '],
+        ])['phase']);
+    }
+
+    #[Test]
+    public function it_leaves_phase_null_for_items_that_have_none(): void
+    {
+        $mapped = $this->mapper->map([
+            'id' => '1',
+            'price' => 100,
+            'item' => ['market_hash_name' => '★ Sport Gloves | Vice (Field-Tested)'],
+        ]);
+
+        $this->assertNull($mapped['phase']);
+    }
+
+    #[Test]
+    public function it_reads_a_non_string_phase_as_absent(): void
+    {
+        $this->assertNull($this->mapper->map([
+            'id' => '1',
+            'price' => 100,
+            'item' => ['phase' => 4],
+        ])['phase']);
+    }
+
+    #[Test]
     public function it_maps_a_real_captured_sale_onto_the_sales_table_shape(): void
     {
         $entry = $this->csfloatSaleEntry(0);

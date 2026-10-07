@@ -38,10 +38,15 @@ Route::get('/sales', function (Request $request) {
         $query->where('float_value', '<=', $request->float('max_float'));
     }
 
+    if ($request->filled('phase')) {
+        $query->whereRaw('lower(phase) = ?', [mb_strtolower($request->string('phase'))]);
+    }
+
     return view('sales.index', [
         'sales' => $query->orderByDesc('sold_at')->paginate(25)->withQueryString(),
         'skins' => TrackedSkin::orderBy('market_hash_name')->pluck('market_hash_name'),
-        'filters' => $request->only(['skin', 'min_float', 'max_float']),
+        'phases' => Sale::query()->whereNotNull('phase')->distinct()->orderBy('phase')->pluck('phase'),
+        'filters' => $request->only(['skin', 'min_float', 'max_float', 'phase']),
     ]);
 })->name('sales.index');
 

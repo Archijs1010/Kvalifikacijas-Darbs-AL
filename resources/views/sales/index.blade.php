@@ -30,6 +30,17 @@
                    class="w-32 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none">
         </div>
 
+        <div class="flex flex-col gap-1">
+            <label for="phase" class="text-xs uppercase tracking-wide text-zinc-500">Phase</label>
+            <select id="phase" name="phase"
+                    class="w-40 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none">
+                <option value="">All phases</option>
+                @foreach ($phases as $phase)
+                    <option value="{{ $phase }}" @selected(($filters['phase'] ?? '') === $phase)>{{ $phase }}</option>
+                @endforeach
+            </select>
+        </div>
+
         <button type="submit"
                 class="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500">
             Apply
@@ -46,8 +57,10 @@
             <tr class="border-b border-zinc-800 text-left text-xs uppercase tracking-wide text-zinc-500">
                 <th class="px-5 py-3 font-medium">Date</th>
                 <th class="px-5 py-3 font-medium">Skin</th>
+                <th class="px-5 py-3 font-medium">Phase</th>
                 <th class="px-5 py-3 font-medium text-right">Price</th>
                 <th class="px-5 py-3 font-medium text-right">Float</th>
+                <th class="px-5 py-3 font-medium text-right">Seed</th>
             </tr>
             </thead>
             <tbody>
@@ -55,12 +68,14 @@
                 <tr class="border-b border-zinc-800/60 last:border-0">
                     <td class="whitespace-nowrap px-5 py-3 text-zinc-400">{{ $sale->sold_at?->format('M j, Y H:i') ?? '—' }}</td>
                     <td class="px-5 py-3">{{ $sale->market_hash_name }}</td>
+                    <td class="px-5 py-3 text-zinc-400">{{ $sale->phase ?? '—' }}</td>
                     <td class="whitespace-nowrap px-5 py-3 text-right">${{ number_format((float) $sale->price, 2) }}</td>
                     <td class="whitespace-nowrap px-5 py-3 text-right text-zinc-400">{{ $sale->float_value === null ? '—' : number_format((float) $sale->float_value, 6) }}</td>
+                    <td class="whitespace-nowrap px-5 py-3 text-right text-zinc-400">{{ $sale->paint_seed ?? '—' }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="4" class="px-5 py-8 text-center text-zinc-500">No sales found.</td>
+                    <td colspan="6" class="px-5 py-8 text-center text-zinc-500">No sales found.</td>
                 </tr>
             @endforelse
             </tbody>

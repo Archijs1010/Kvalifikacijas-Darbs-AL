@@ -36,6 +36,7 @@ class TrackedSkinRequest extends FormRequest
             ],
             'min_float' => ['nullable', 'numeric', 'between:0,1'],
             'max_float' => ['nullable', 'numeric', 'between:0,1'],
+            'phase' => ['nullable', 'string', 'max:50'],
             'enabled' => ['nullable', 'boolean'],
         ];
 
@@ -75,6 +76,7 @@ class TrackedSkinRequest extends FormRequest
             'market_hash_name' => is_string($name) ? trim($name) : $name,
             'min_float' => $this->blankToNull($this->input('min_float')),
             'max_float' => $this->blankToNull($this->input('max_float')),
+            'phase' => $this->blankToNull($this->input('phase')),
         ];
 
         if ($this->has('enabled')) {

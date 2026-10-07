@@ -28,7 +28,9 @@ class ImportSkinSalesController extends Controller
             'skipped' => $result['skipped'],
             'skipped_duplicates' => $result['skipped_duplicates'],
             'skipped_out_of_range' => $result['skipped_out_of_range'],
+            'skipped_wrong_phase' => $result['skipped_wrong_phase'],
             'skipped_malformed' => $result['skipped_malformed'],
+            'no_sales' => $result['no_sales'],
         ]);
     }
 }

@@ -56,7 +56,10 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.message || 'Import failed');
                 const failed = data.failed_skins.length ? ' — failed: ' + data.failed_skins.join(', ') : '';
-                status.textContent = 'Imported: ' + data.imported + ' · Skipped: ' + data.skipped + failed;
+                const unknown = data.no_sales_skins.length
+                    ? ' — no sales found: ' + data.no_sales_skins.join(', ')
+                    : '';
+                status.textContent = 'Imported: ' + data.imported + ' · Skipped: ' + data.skipped + failed + unknown;
             } catch {
                 status.textContent = 'Import failed.';
             } finally {

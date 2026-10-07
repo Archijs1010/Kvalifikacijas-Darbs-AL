@@ -8,6 +8,7 @@
               class="grid gap-4 sm:grid-cols-2">
             @csrf
             @method('PUT')
+            @include('skins._phase-options')
 
             <div class="flex flex-col gap-1 sm:col-span-2">
                 <label for="market_hash_name" class="text-xs uppercase tracking-wide text-zinc-500">Market hash name</label>
@@ -35,6 +36,17 @@
                        value="{{ old('max_float', $skin->max_float) }}"
                        class="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none">
                 @error('max_float')
+                    <p class="text-xs text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="flex flex-col gap-1">
+                <label for="phase" class="text-xs uppercase tracking-wide text-zinc-500">Phase</label>
+                <input id="phase" name="phase" type="text" list="phase-options"
+                       value="{{ old('phase', $skin->phase) }}"
+                       placeholder="Any"
+                       class="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none">
+                @error('phase')
                     <p class="text-xs text-red-400">{{ $message }}</p>
                 @enderror
             </div>

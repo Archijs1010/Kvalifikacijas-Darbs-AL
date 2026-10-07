@@ -35,6 +35,8 @@ class CSFloatSaleMapper
             'float_value' => $this->floatValue($item),
             'sold_at' => $this->soldAt($entry),
             'paint_index' => $this->paintIndex($item),
+            'paint_seed' => $this->paintSeed($item),
+            'phase' => $this->phase($item),
             'raw_json' => $entry,
         ];
     }
@@ -180,5 +182,44 @@ class CSFloatSaleMapper
         }
 
         return $paintIndex;
+    }
+
+    /**
+     * The pattern seed belongs to the individual item, not the finish, so
+     * two skins sharing a market hash name still differ by this value. It is
+     * what decides how pattern-driven finishes (Case Hardened, Doppler)
+     * actually read on screen.
+     */
+    private function paintSeed(array $item): ?int
+    {
+        $seed = $item['paint_seed'] ?? null;
+
+        if (is_string($seed) && is_numeric($seed)) {
+            $seed = (int) $seed;
+        }
+
+        if (! is_int($seed)) {
+            return null;
+        }
+
+        return $seed;
+    }
+
+    /**
+     * Doppler-style finishes carry a phase ("Phase 4", "Sapphire", "Ruby"),
+     * which is not part of the market hash name and is only present on items
+     * that actually have one — gloves and rifles omit it entirely.
+     */
+    private function phase(array $item): ?string
+    {
+        $phase = $item['phase'] ?? null;
+
+        if (! is_string($phase)) {
+            return null;
+        }
+
+        $phase = trim($phase);
+
+        return $phase === '' ? null : $phase;
     }
 }

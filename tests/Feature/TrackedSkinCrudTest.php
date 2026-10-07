@@ -395,4 +395,102 @@ class TrackedSkinCrudTest extends TestCase
         $this->patch('/skins/9999/toggle')->assertNotFound();
         $this->delete('/skins/9999')->assertNotFound();
     }
+
+    #[Test]
+    public function it_saves_a_phase_alongside_the_name(): void
+    {
+        $this->post(route('skins.store'), [
+            'market_hash_name' => '★ Karambit | Doppler (Factory New)',
+            'min_float' => '0.0000',
+            'max_float' => '0.0700',
+            'phase' => 'Phase 4',
+            'enabled' => '1',
+        ])->assertRedirect(route('skins.index'))->assertSessionHasNoErrors();
+
+        $skin = TrackedSkin::sole();
+
+        $this->assertSame('Phase 4', $skin->phase);
+        $this->assertSame('0.0000', $skin->min_float);
+    }
+
+    #[Test]
+    public function it_leaves_the_phase_null_when_the_field_is_blank(): void
+    {
+        $this->post(route('skins.store'), [
+            'market_hash_name' => 'AK-47 | Redline (Field-Tested)',
+            'phase' => '   ',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertNull(TrackedSkin::sole()->phase);
+    }
+
+    #[Test]
+    public function it_leaves_the_phase_null_when_the_field_is_absent(): void
+    {
+        $this->post(route('skins.store'), [
+            'market_hash_name' => 'AK-47 | Redline (Field-Tested)',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertNull(TrackedSkin::sole()->phase);
+    }
+
+    #[Test]
+    public function it_can_unset_a_phase_on_update(): void
+    {
+        $skin = TrackedSkin::factory()->create(['market_hash_name' => '★ Karambit | Doppler (Factory New)']);
+        $skin->forceFill(['phase' => 'Phase 4'])->save();
+
+        $this->put(route('skins.update', $skin), [
+            'market_hash_name' => $skin->market_hash_name,
+            'phase' => '',
+        ])->assertRedirect(route('skins.index'))->assertSessionHasNoErrors();
+
+        $this->assertNull($skin->fresh()->phase);
+    }
+
+    #[Test]
+    public function it_shows_the_phase_on_the_tracked_skins_table(): void
+    {
+        TrackedSkin::factory()->create([
+            'market_hash_name' => '★ Karambit | Doppler (Factory New)',
+        ])->forceFill(['phase' => 'Phase 4'])->save();
+
+        $this->get(route('skins.index'))
+            ->assertOk()
+            ->assertSee('Phase 4</td>', false);
+    }
+
+    #[Test]
+    public function it_prefills_the_phase_on_the_edit_form(): void
+    {
+        $skin = TrackedSkin::factory()->create([
+            'market_hash_name' => '★ Karambit | Doppler (Factory New)',
+        ]);
+        $skin->forceFill(['phase' => 'Sapphire'])->save();
+
+        $this->get(route('skins.edit', $skin))
+            ->assertOk()
+            ->assertSee('value="Sapphire"', false);
+    }
+
+    #[Test]
+    public function it_rejects_an_overlong_phase(): void
+    {
+        $this->post(route('skins.store'), [
+            'market_hash_name' => '★ Karambit | Doppler (Factory New)',
+            'phase' => str_repeat('a', 51),
+        ])->assertSessionHasErrors('phase');
+    }
+
+    #[Test]
+    public function it_offers_phase_suggestions_on_both_forms(): void
+    {
+        $index = $this->get(route('skins.index'))->assertOk()->getContent();
+        $this->assertStringContainsString('id="phase-options"', $index);
+
+        $skin = TrackedSkin::factory()->create();
+        $edit = $this->get(route('skins.edit', $skin))->assertOk()->getContent();
+        $this->assertStringContainsString('id="phase-options"', $edit);
+        $this->assertStringContainsString('list="phase-options"', $edit);
+    }
 }
