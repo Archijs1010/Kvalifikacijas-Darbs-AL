@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Sale;
 use App\Models\TrackedSkin;
+use Illuminate\Http\Client\RequestException;
 use Throwable;
 
 class SalesImporter
@@ -28,7 +29,8 @@ class SalesImporter
      *     skipped_wrong_phase: int,
      *     skipped_malformed: int,
      *     no_sales: bool,
-     *     failed: bool
+     *     failed: bool,
+     *     rate_limited: bool
      * }
      */
     public function importSkin(TrackedSkin $skin): array
@@ -42,12 +44,21 @@ class SalesImporter
             'skipped_malformed' => 0,
             'no_sales' => false,
             'failed' => false,
+            'rate_limited' => false,
         ];
 
         try {
             $entries = $this->mapper->salesList(
                 $this->csfloat->getSales($skin->market_hash_name)
             );
+        } catch (RequestException $exception) {
+            $totals['failed'] = true;
+            // CSFloat answers an exhausted rate limit with 429. That is a
+            // signal to stop asking, not an error to retry against, so the
+            // caller has to be able to tell it apart from an ordinary failure.
+            $totals['rate_limited'] = $exception->response->status() === 429;
+
+            return $totals;
         } catch (Throwable) {
             $totals['failed'] = true;
 

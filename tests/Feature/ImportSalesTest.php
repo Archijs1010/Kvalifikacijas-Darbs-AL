@@ -21,10 +21,7 @@ class ImportSalesTest extends TestCase
      */
     private function fakeCSFloat(array $overrides = []): void
     {
-        $sales = collect($this->csfloatSalesFixture())
-            ->groupBy(fn (array $sale) => $sale['item']['market_hash_name'])
-            ->map(fn ($group) => $group->values()->all())
-            ->all();
+        $sales = $this->groupedFixture();
 
         Http::fake(function (Request $request) use ($sales, $overrides) {
             foreach (array_merge($sales, $overrides) as $skin => $payload) {
@@ -35,6 +32,19 @@ class ImportSalesTest extends TestCase
 
             return Http::response([], 404);
         });
+    }
+
+    /**
+     * The captured fixture grouped by the skin it belongs to.
+     *
+     * @return array<string, array<int, array<string, mixed>>>
+     */
+    private function groupedFixture(): array
+    {
+        return collect($this->csfloatSalesFixture())
+            ->groupBy(fn (array $sale) => $sale['item']['market_hash_name'])
+            ->map(fn ($group) => $group->values()->all())
+            ->all();
     }
 
     #[Test]
@@ -219,5 +229,175 @@ class ImportSalesTest extends TestCase
         $this->postJson(route('import-sales'))
             ->assertOk()
             ->assertJson(['imported' => 0, 'skipped' => 0, 'malformed' => 0, 'failed_skins' => []]);
+    }
+
+    #[Test]
+    public function it_reports_successful_skins_and_duplicates_for_the_summary(): void
+    {
+        $this->fakeCSFloat();
+        TrackedSkin::create(['market_hash_name' => 'AK-47 | Redline (Field-Tested)', 'enabled' => true]);
+        TrackedSkin::create(['market_hash_name' => 'AWP | Dragon Lore (Factory New)', 'enabled' => true]);
+
+        $this->postJson(route('import-sales'))
+            ->assertOk()
+            ->assertJson([
+                'imported' => 4,
+                'duplicates' => 0,
+                'successful_skins' => [
+                    'AK-47 | Redline (Field-Tested)',
+                    'AWP | Dragon Lore (Factory New)',
+                ],
+                'failed_skins' => [],
+                'rate_limited' => false,
+                'not_attempted' => [],
+            ]);
+    }
+
+    #[Test]
+    public function it_counts_duplicates_separately_from_other_skipped_sales(): void
+    {
+        $this->fakeCSFloat();
+        TrackedSkin::create(['market_hash_name' => 'AK-47 | Redline (Field-Tested)', 'enabled' => true]);
+
+        $this->postJson(route('import-sales'))->assertOk()->assertJson([
+            'imported' => 2,
+            'skipped' => 0,
+            'duplicates' => 0,
+        ]);
+
+        $this->postJson(route('import-sales'))
+            ->assertOk()
+            ->assertJson([
+                'imported' => 0,
+                'skipped' => 2,
+                'duplicates' => 2,
+                'successful_skins' => ['AK-47 | Redline (Field-Tested)'],
+            ]);
+    }
+
+    #[Test]
+    public function it_keeps_importing_the_remaining_skins_after_one_fails(): void
+    {
+        $payloads = $this->groupedFixture();
+
+        Http::fake(function (Request $request) use ($payloads) {
+            if (str_contains($request->url(), rawurlencode('AK-47 | Redline (Field-Tested)'))) {
+                return Http::response(['error' => 'forbidden'], 403);
+            }
+
+            return Http::response($payloads['AWP | Dragon Lore (Factory New)'], 200);
+        });
+
+        TrackedSkin::create(['market_hash_name' => 'AK-47 | Redline (Field-Tested)', 'enabled' => true]);
+        TrackedSkin::create(['market_hash_name' => 'AWP | Dragon Lore (Factory New)', 'enabled' => true]);
+
+        $this->postJson(route('import-sales'))
+            ->assertOk()
+            ->assertJson([
+                'imported' => 2,
+                'successful_skins' => ['AWP | Dragon Lore (Factory New)'],
+                'failed_skins' => ['AK-47 | Redline (Field-Tested)'],
+                'rate_limited' => false,
+                'not_attempted' => [],
+            ]);
+
+        $this->assertSame(2, Sale::count());
+        Http::assertSentCount(2);
+    }
+
+    #[Test]
+    public function it_stops_the_run_and_sends_no_further_requests_when_rate_limited(): void
+    {
+        $payloads = $this->groupedFixture();
+
+        Http::fake(function (Request $request) use ($payloads) {
+            if (str_contains($request->url(), rawurlencode('AK-47 | Redline (Field-Tested)'))) {
+                return Http::response(['error' => 'rate limited'], 429);
+            }
+
+            return Http::response($payloads['AWP | Dragon Lore (Factory New)'], 200);
+        });
+
+        TrackedSkin::create(['market_hash_name' => 'AK-47 | Redline (Field-Tested)', 'enabled' => true]);
+        TrackedSkin::create(['market_hash_name' => 'AWP | Dragon Lore (Factory New)', 'enabled' => true]);
+        TrackedSkin::create(['market_hash_name' => 'M4A4 | Howl (Factory New)', 'enabled' => true]);
+
+        $this->postJson(route('import-sales'))
+            ->assertOk()
+            ->assertJson([
+                'imported' => 0,
+                'rate_limited' => true,
+                'failed_skins' => ['AK-47 | Redline (Field-Tested)'],
+                'successful_skins' => [],
+                'not_attempted' => [
+                    'AWP | Dragon Lore (Factory New)',
+                    'M4A4 | Howl (Factory New)',
+                ],
+            ]);
+
+        $this->assertSame(0, Sale::count());
+        // The 429 plus nothing else: the remaining skins were never asked for.
+        Http::assertSentCount(1);
+    }
+
+    #[Test]
+    public function it_makes_exactly_one_request_per_enabled_skin(): void
+    {
+        $this->fakeCSFloat();
+        TrackedSkin::create(['market_hash_name' => 'AK-47 | Redline (Field-Tested)', 'enabled' => true]);
+        TrackedSkin::create(['market_hash_name' => 'AWP | Dragon Lore (Factory New)', 'enabled' => true]);
+        TrackedSkin::create(['market_hash_name' => 'Disabled Skin (Field-Tested)', 'enabled' => false]);
+
+        $this->postJson(route('import-sales'))->assertOk();
+
+        Http::assertSentCount(2);
+    }
+
+    #[Test]
+    public function it_reports_a_skin_with_an_empty_response_as_successful(): void
+    {
+        Http::fake(fn () => Http::response([], 200));
+        TrackedSkin::create(['market_hash_name' => 'AK-47 | Redline (Field-Tested)', 'enabled' => true]);
+
+        $this->postJson(route('import-sales'))
+            ->assertOk()
+            ->assertJson([
+                'imported' => 0,
+                'successful_skins' => ['AK-47 | Redline (Field-Tested)'],
+                'failed_skins' => [],
+                'no_sales_skins' => ['AK-47 | Redline (Field-Tested)'],
+            ]);
+    }
+
+    #[Test]
+    public function it_makes_no_requests_at_all_when_no_skin_is_enabled(): void
+    {
+        $this->fakeCSFloat();
+        TrackedSkin::create(['market_hash_name' => 'AK-47 | Redline (Field-Tested)', 'enabled' => false]);
+
+        $this->postJson(route('import-sales'))
+            ->assertOk()
+            ->assertJson([
+                'imported' => 0,
+                'successful_skins' => [],
+                'failed_skins' => [],
+            ]);
+
+        Http::assertNothingSent();
+    }
+
+    #[Test]
+    public function the_dashboard_offers_the_import_all_sales_button_and_its_summary(): void
+    {
+        $this->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Import All Sales', false)
+            ->assertSee('id="import-form"', false)
+            ->assertSee('id="import-summary"', false)
+            ->assertSee('Successful skins', false)
+            ->assertSee('Failed skins', false)
+            ->assertSee('New sales imported', false)
+            ->assertSee('Duplicate sales skipped', false)
+            ->assertSee('id="rate-limit-note"', false);
     }
 }
