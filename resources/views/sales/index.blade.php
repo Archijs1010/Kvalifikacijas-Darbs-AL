@@ -17,6 +17,20 @@
         </div>
 
         <div class="flex flex-col gap-1">
+            <label for="from" class="text-xs uppercase tracking-wide text-zinc-500">From</label>
+            <input id="from" name="from" type="date"
+                   value="{{ $filters['from'] ?? '' }}"
+                   class="w-40 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none">
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label for="to" class="text-xs uppercase tracking-wide text-zinc-500">To</label>
+            <input id="to" name="to" type="date"
+                   value="{{ $filters['to'] ?? '' }}"
+                   class="w-40 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none">
+        </div>
+
+        <div class="flex flex-col gap-1">
             <label for="min_float" class="text-xs uppercase tracking-wide text-zinc-500">Min float</label>
             <input id="min_float" name="min_float" type="number" min="0" max="1" step="0.0001"
                    value="{{ $filters['min_float'] ?? '' }}"
@@ -27,6 +41,20 @@
             <label for="max_float" class="text-xs uppercase tracking-wide text-zinc-500">Max float</label>
             <input id="max_float" name="max_float" type="number" min="0" max="1" step="0.0001"
                    value="{{ $filters['max_float'] ?? '' }}"
+                   class="w-32 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none">
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label for="min_price" class="text-xs uppercase tracking-wide text-zinc-500">Min price</label>
+            <input id="min_price" name="min_price" type="number" min="0" step="0.01"
+                   value="{{ $filters['min_price'] ?? '' }}"
+                   class="w-32 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none">
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label for="max_price" class="text-xs uppercase tracking-wide text-zinc-500">Max price</label>
+            <input id="max_price" name="max_price" type="number" min="0" step="0.01"
+                   value="{{ $filters['max_price'] ?? '' }}"
                    class="w-32 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none">
         </div>
 

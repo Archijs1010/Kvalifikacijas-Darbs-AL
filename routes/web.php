@@ -30,23 +30,49 @@ Route::get('/sales', function (Request $request) {
         $query->where('market_hash_name', $request->string('skin'));
     }
 
-    if ($request->filled('min_float')) {
-        $query->where('float_value', '>=', $request->float('min_float'));
-    }
-
-    if ($request->filled('max_float')) {
-        $query->where('float_value', '<=', $request->float('max_float'));
-    }
-
     if ($request->filled('phase')) {
         $query->whereRaw('lower(phase) = ?', [mb_strtolower($request->string('phase'))]);
+    }
+
+    $ranges = [
+        'min_float' => ['float_value', '>='],
+        'max_float' => ['float_value', '<='],
+        'min_price' => ['price', '>='],
+        'max_price' => ['price', '<='],
+    ];
+
+    foreach ($ranges as $key => [$column, $operator]) {
+        $value = $request->input($key);
+
+        if (is_string($value) && $value !== '' && is_numeric($value)) {
+            $query->where($column, $operator, (float) $value);
+        }
+    }
+
+    $from = $request->input('from');
+    if (is_string($from) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $from)) {
+        $query->where('sold_at', '>=', $from.' 00:00:00');
+    }
+
+    $to = $request->input('to');
+    if (is_string($to) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $to)) {
+        $query->where('sold_at', '<=', $to.' 23:59:59');
     }
 
     return view('sales.index', [
         'sales' => $query->orderByDesc('sold_at')->paginate(25)->withQueryString(),
         'skins' => TrackedSkin::orderBy('market_hash_name')->pluck('market_hash_name'),
         'phases' => Sale::query()->whereNotNull('phase')->distinct()->orderBy('phase')->pluck('phase'),
-        'filters' => $request->only(['skin', 'min_float', 'max_float', 'phase']),
+        'filters' => $request->only([
+            'skin',
+            'min_float',
+            'max_float',
+            'min_price',
+            'max_price',
+            'phase',
+            'from',
+            'to',
+        ]),
     ]);
 })->name('sales.index');
 

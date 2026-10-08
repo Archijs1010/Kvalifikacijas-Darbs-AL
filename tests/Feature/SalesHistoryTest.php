@@ -190,4 +190,171 @@ class SalesHistoryTest extends TestCase
             'raw_json' => [],
         ]);
     }
+
+    /**
+     * @param  array<string, mixed>  $overrides
+     */
+    private function sale(array $overrides = []): Sale
+    {
+        static $i = 0;
+        $i++;
+
+        return Sale::create(array_merge([
+            'sale_id' => 's'.$i,
+            'market_hash_name' => 'AK-47 | Redline (Field-Tested)',
+            'price' => 33.61,
+            'sold_at' => '2026-10-06 14:30:00',
+            'raw_json' => [],
+        ], $overrides));
+    }
+
+    #[Test]
+    public function it_shows_the_skin_price_float_and_sale_date_columns(): void
+    {
+        $this->get(route('sales.index'))
+            ->assertOk()
+            ->assertSee('>Skin<', false)
+            ->assertSee('>Price<', false)
+            ->assertSee('>Float<', false)
+            ->assertSee('>Date<', false);
+    }
+
+    #[Test]
+    public function it_offers_every_filter_on_the_sales_history_form(): void
+    {
+        $this->get(route('sales.index'))
+            ->assertOk()
+            ->assertSee('name="skin"', false)
+            ->assertSee('name="from"', false)
+            ->assertSee('name="to"', false)
+            ->assertSee('name="min_float"', false)
+            ->assertSee('name="max_float"', false)
+            ->assertSee('name="min_price"', false)
+            ->assertSee('name="max_price"', false)
+            ->assertSee('name="phase"', false);
+    }
+
+    #[Test]
+    public function it_filters_sales_on_or_after_the_from_date(): void
+    {
+        $this->sale(['price' => 11.11, 'sold_at' => '2026-10-01 12:00:00']);
+        $this->sale(['price' => 22.22, 'sold_at' => '2026-10-05 12:00:00']);
+
+        $this->get(route('sales.index', ['from' => '2026-10-05']))
+            ->assertOk()
+            ->assertSee('$22.22')
+            ->assertDontSee('$11.11');
+    }
+
+    #[Test]
+    public function it_includes_the_whole_day_in_the_to_date(): void
+    {
+        $this->sale(['price' => 11.11, 'sold_at' => '2026-10-01 12:00:00']);
+        $this->sale(['price' => 22.22, 'sold_at' => '2026-10-05 23:59:59']);
+        $this->sale(['price' => 33.33, 'sold_at' => '2026-10-06 00:00:01']);
+
+        $this->get(route('sales.index', ['to' => '2026-10-05']))
+            ->assertOk()
+            ->assertSee('$11.11')
+            ->assertSee('$22.22')
+            ->assertDontSee('$33.33');
+    }
+
+    #[Test]
+    public function it_combines_the_from_and_to_dates_into_a_window(): void
+    {
+        $this->sale(['price' => 11.11, 'sold_at' => '2026-10-01 12:00:00']);
+        $this->sale(['price' => 22.22, 'sold_at' => '2026-10-05 12:00:00']);
+        $this->sale(['price' => 33.33, 'sold_at' => '2026-10-09 12:00:00']);
+
+        $this->get(route('sales.index', ['from' => '2026-10-04', 'to' => '2026-10-06']))
+            ->assertOk()
+            ->assertSee('$22.22')
+            ->assertDontSee('$11.11')
+            ->assertDontSee('$33.33');
+    }
+
+    #[Test]
+    public function it_ignores_a_malformed_date_filter(): void
+    {
+        $this->sale(['price' => 11.11, 'sold_at' => '2026-10-01 12:00:00']);
+
+        $this->get(route('sales.index', ['from' => 'not-a-date', 'to' => '']))
+            ->assertOk()
+            ->assertSee('$11.11');
+    }
+
+    #[Test]
+    public function it_filters_sales_by_a_price_range(): void
+    {
+        $this->sale(['price' => 10.00]);
+        $this->sale(['price' => 50.00]);
+        $this->sale(['price' => 90.00]);
+
+        $this->get(route('sales.index', ['min_price' => 20, 'max_price' => 60]))
+            ->assertOk()
+            ->assertSee('$50.00')
+            ->assertDontSee('$10.00')
+            ->assertDontSee('$90.00');
+    }
+
+    #[Test]
+    public function it_accepts_an_open_ended_price_bound(): void
+    {
+        $this->sale(['price' => 10.00]);
+        $this->sale(['price' => 50.00]);
+        $this->sale(['price' => 90.00]);
+
+        $this->get(route('sales.index', ['min_price' => 60]))
+            ->assertOk()
+            ->assertSee('$90.00')
+            ->assertDontSee('$10.00')
+            ->assertDontSee('$50.00');
+    }
+
+    #[Test]
+    public function it_ignores_a_non_numeric_price_filter(): void
+    {
+        $this->sale(['price' => 10.00]);
+
+        $this->get(route('sales.index', ['min_price' => 'cheap', 'max_price' => '']))
+            ->assertOk()
+            ->assertSee('$10.00');
+    }
+
+    #[Test]
+    public function it_paginates_the_sales_history(): void
+    {
+        $base = new \DateTimeImmutable('2026-10-01 00:00:00');
+
+        foreach (range(1, 30) as $i) {
+            $this->sale([
+                'price' => $i,
+                'sold_at' => $base->modify("+{$i} minutes")->format('Y-m-d H:i:s'),
+            ]);
+        }
+
+        $first = $this->get(route('sales.index'))->assertOk();
+        $this->assertSame(25, substr_count($first->getContent(), 'AK-47 | Redline (Field-Tested)'));
+        $first->assertSee('page=2');
+
+        $second = $this->get(route('sales.index', ['page' => 2]))->assertOk();
+        $this->assertSame(5, substr_count($second->getContent(), 'AK-47 | Redline (Field-Tested)'));
+    }
+
+    #[Test]
+    public function it_carries_the_active_filters_onto_the_next_page(): void
+    {
+        foreach (range(1, 30) as $i) {
+            $this->sale(['price' => $i]);
+        }
+
+        $first = $this->get(route('sales.index', ['min_price' => 5]))->assertOk();
+
+        $this->assertSame(25, substr_count($first->getContent(), 'AK-47 | Redline (Field-Tested)'));
+        $first->assertSee('min_price=5', false);
+
+        $second = $this->get(route('sales.index', ['min_price' => 5, 'page' => 2]))->assertOk();
+        $this->assertSame(1, substr_count($second->getContent(), 'AK-47 | Redline (Field-Tested)'));
+    }
 }
