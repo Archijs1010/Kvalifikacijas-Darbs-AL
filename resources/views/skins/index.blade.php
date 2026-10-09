@@ -91,7 +91,9 @@
             <tbody>
             @forelse ($skins as $skin)
                 <tr class="border-b border-zinc-800/60 last:border-0">
-                    <td class="px-5 py-3">{{ $skin->market_hash_name }}</td>
+                    <td class="px-5 py-3">
+                        <a href="{{ route('skins.sales', $skin) }}" class="hover:text-sky-400">{{ $skin->market_hash_name }}</a>
+                    </td>
                     <td class="px-5 py-3 text-zinc-400">{{ $skin->min_float ?? '—' }}</td>
                     <td class="px-5 py-3 text-zinc-400">{{ $skin->max_float ?? '—' }}</td>
                     <td class="px-5 py-3 text-zinc-400">{{ $skin->phase ?? '—' }}</td>

@@ -19,6 +19,29 @@ Route::get('/skins', [TrackedSkinController::class, 'index'])->name('skins.index
 Route::post('/skins', [TrackedSkinController::class, 'store'])->name('skins.store');
 Route::get('/skins/{skin}/edit', [TrackedSkinController::class, 'edit'])->name('skins.edit');
 Route::put('/skins/{skin}', [TrackedSkinController::class, 'update'])->name('skins.update');
+
+Route::get('/skins/{skin}/sales', function (TrackedSkin $skin) {
+    $prices = Sale::query()
+        ->where('market_hash_name', $skin->market_hash_name)
+        ->pluck('price')
+        ->map(fn ($price) => (float) $price);
+
+    return view('skins.sales', [
+        'skin' => $skin,
+        'stats' => [
+            'count' => $prices->count(),
+            'lowest' => $prices->min(),
+            'highest' => $prices->max(),
+            'average' => $prices->avg(),
+            'median' => $prices->median(),
+        ],
+        'sales' => Sale::query()
+            ->where('market_hash_name', $skin->market_hash_name)
+            ->orderByDesc('sold_at')
+            ->paginate(25),
+    ]);
+})->name('skins.sales');
+
 Route::patch('/skins/{skin}/toggle', [TrackedSkinController::class, 'toggle'])->name('skins.toggle');
 Route::post('/skins/{skin}/import', ImportSkinSalesController::class)->name('skins.import');
 Route::delete('/skins/{skin}', [TrackedSkinController::class, 'destroy'])->name('skins.destroy');
