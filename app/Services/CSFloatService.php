@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\ApiRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use Throwable;
 
 class CSFloatService
 {
@@ -16,8 +18,40 @@ class CSFloatService
     {
         $url = 'https://csfloat.com/api/v1/history/'.rawurlencode($marketHashName).'/sales';
 
-        return Http::withToken(config('services.csfloat.key'))
+        $response = Http::withToken(config('services.csfloat.key'))
             ->acceptJson()
             ->get($url);
+
+        $this->record($marketHashName, $response);
+
+        return $response;
+    }
+
+    /**
+     * Keep a local tally of every call so the remaining CSFloat quota can be
+     * checked without spending another request to ask for it. Bookkeeping is
+     * strictly auxiliary: a failure here must never break the request it
+     * observes.
+     */
+    private function record(string $marketHashName, Response $response): void
+    {
+        try {
+            ApiRequest::create([
+                'market_hash_name' => $marketHashName,
+                'status' => $response->status(),
+                'rate_limit' => $this->quotaHeader($response, 'x-ratelimit-limit'),
+                'rate_remaining' => $this->quotaHeader($response, 'x-ratelimit-remaining'),
+                'requested_at' => now(),
+            ]);
+        } catch (Throwable) {
+            // Never let a logging problem interrupt an import.
+        }
+    }
+
+    private function quotaHeader(Response $response, string $header): ?int
+    {
+        $value = $response->header($header);
+
+        return is_numeric($value) ? (int) $value : null;
     }
 }

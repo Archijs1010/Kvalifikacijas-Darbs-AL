@@ -3,6 +3,7 @@
 use App\Http\Controllers\ImportSalesController;
 use App\Http\Controllers\ImportSkinSalesController;
 use App\Http\Controllers\TrackedSkinController;
+use App\Models\ApiRequest;
 use App\Models\Sale;
 use App\Models\TrackedSkin;
 use Illuminate\Http\Request;
@@ -12,6 +13,10 @@ Route::get('/', function () {
     return view('dashboard', [
         'totalSkins' => TrackedSkin::count(),
         'totalSales' => Sale::count(),
+        // Local tally of outbound calls, so the remaining CSFloat quota can be
+        // read without spending another request to ask for it.
+        'apiUsage' => ApiRequest::usage(),
+        'recentApiRequests' => ApiRequest::query()->orderByDesc('requested_at')->limit(10)->get(),
     ]);
 })->name('dashboard');
 

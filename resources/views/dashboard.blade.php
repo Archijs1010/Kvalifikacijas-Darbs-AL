@@ -72,6 +72,71 @@
             <span id="no-sales-names" class="text-zinc-300"></span>
         </div>
     </div>
+
+    <h2 class="mt-8 text-lg font-semibold">CSFloat API usage</h2>
+
+    <div class="mt-3 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+        <div class="grid gap-4 sm:grid-cols-4">
+            <div>
+                <p class="text-xs uppercase tracking-wide text-zinc-500">Requests today</p>
+                <p id="api-today" class="mt-1 text-3xl font-semibold">{{ $apiUsage['today'] }}</p>
+            </div>
+            <div>
+                <p class="text-xs uppercase tracking-wide text-zinc-500">Last 24 hours</p>
+                <p id="api-last-day" class="mt-1 text-3xl font-semibold">{{ $apiUsage['last_day'] }}</p>
+            </div>
+            <div>
+                <p class="text-xs uppercase tracking-wide text-zinc-500">Remaining quota</p>
+                <p class="mt-1 text-3xl font-semibold">
+                    <span id="api-remaining">{{ $apiUsage['remaining'] ?? '—' }}</span>
+                    <span class="text-sm text-zinc-500">/ <span id="api-limit">{{ $apiUsage['limit'] ?? '—' }}</span></span>
+                </p>
+            </div>
+            <div>
+                <p class="text-xs uppercase tracking-wide text-zinc-500">Last request</p>
+                <p id="api-last-at" class="mt-1 text-3xl font-semibold">
+                    {{ $apiUsage['last_at']?->diffForHumans() ?? '—' }}
+                </p>
+            </div>
+        </div>
+
+        @if ($recentApiRequests->isNotEmpty())
+            <div class="mt-5 border-t border-zinc-800 pt-4">
+                <p class="text-xs uppercase tracking-wide text-zinc-500">Recent requests</p>
+                <table class="mt-2 w-full text-sm">
+                    <thead class="text-left text-xs uppercase tracking-wide text-zinc-500">
+                        <tr>
+                            <th class="py-1 pr-4 font-medium">When</th>
+                            <th class="py-1 pr-4 font-medium">Skin</th>
+                            <th class="py-1 pr-4 font-medium">Status</th>
+                            <th class="py-1 font-medium">Remaining</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-zinc-300">
+                        @foreach ($recentApiRequests as $apiRequest)
+                            <tr class="border-t border-zinc-800/60">
+                                <td class="whitespace-nowrap py-1 pr-4 text-zinc-500">
+                                    {{ $apiRequest->requested_at?->diffForHumans() ?? '—' }}
+                                </td>
+                                <td class="py-1 pr-4">{{ $apiRequest->market_hash_name }}</td>
+                                <td class="py-1 pr-4 {{ $apiRequest->status >= 400 ? 'text-red-400' : 'text-emerald-400' }}">
+                                    {{ $apiRequest->status }}
+                                </td>
+                                <td class="py-1">{{ $apiRequest->rate_remaining ?? '—' }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                <p class="mt-2 text-xs text-zinc-600">
+                    The 10 most recent calls at page load. Importing one skin is one call.
+                </p>
+            </div>
+        @else
+            <p class="mt-5 border-t border-zinc-800 pt-4 text-sm text-zinc-500">
+                No calls recorded yet. Numbers appear here after the first import.
+            </p>
+        @endif
+    </div>
 @endsection
 
 @push('scripts')
@@ -115,6 +180,14 @@
                 set('sum-failed', data.failed_skins.length);
                 set('sum-imported', data.imported);
                 set('sum-duplicates', data.duplicates);
+
+                if (data.usage) {
+                    set('api-today', data.usage.today);
+                    set('api-last-day', data.usage.last_day);
+                    set('api-remaining', data.usage.remaining ?? '—');
+                    set('api-limit', data.usage.limit ?? '—');
+                    set('api-last-at', 'just now');
+                }
 
                 if (data.failed_skins.length) {
                     set('failed-names', names(data.failed_skins));

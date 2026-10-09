@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ApiRequest;
 use App\Models\TrackedSkin;
 use App\Services\SalesImporter;
 use Illuminate\Http\JsonResponse;
@@ -77,6 +78,8 @@ class ImportSalesController extends Controller
             'no_sales_skins' => $noSalesSkins,
             'rate_limited' => $rateLimited,
             'not_attempted' => $notAttempted,
+            // Fresh tally so the dashboard usage card updates without a reload.
+            'usage' => ApiRequest::usage(),
         ]);
     }
 }

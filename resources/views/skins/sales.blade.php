@@ -111,21 +111,67 @@
             const chartWrap = document.getElementById('chart-wrap');
             const chartEmpty = document.getElementById('chart-empty');
 
+            const DAY = 24 * 60 * 60 * 1000;
+            const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+            let currentDates = [];
+
             const timestamp = (point) => new Date(point.date.replace(' ', 'T')).getTime();
+
+            const daysAgo = (point) => Math.max(0, Math.round((Date.now() - timestamp(point)) / DAY));
+
+            // A 7 day window reads best day by day, a month week by week, a
+            // quarter month by month, and anything longer in quarters.
+            const tickStep = (maxDaysAgo) => {
+                if (maxDaysAgo <= 7) return 1;
+                if (maxDaysAgo <= 14) return 2;
+                if (maxDaysAgo <= 31) return 7;
+                if (maxDaysAgo <= 90) return 30;
+                return Math.ceil(maxDaysAgo / 4);
+            };
+
+            // The axis speaks in "days ago" while the tooltip keeps the exact
+            // sale timestamp, so the raw dates stay available next to the data.
+            const axisLabels = (data) => {
+                if (data.length === 0) return [];
+
+                const ago = data.map(daysAgo);
+                const step = tickStep(ago[0]);
+                const labelled = new Set();
+
+                return data.map((point, index) => {
+                    const days = ago[index];
+
+                    if (labelled.has(days)) return '';
+                    labelled.add(days);
+
+                    if (index === 0 || days % step === 0) return days + 'd ago';
+
+                    return '';
+                });
+            };
+
+            const formatDate = (value) => {
+                const date = new Date(value.replace(' ', 'T'));
+                const pad = (number) => String(number).padStart(2, '0');
+
+                return MONTHS[date.getMonth()] + ' ' + date.getDate() + ', ' + date.getFullYear()
+                    + ' ' + pad(date.getHours()) + ':' + pad(date.getMinutes());
+            };
 
             const withinRange = (days) => {
                 if (days === null) return points;
-                const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+                const cutoff = Date.now() - days * DAY;
                 return points.filter((point) => timestamp(point) >= cutoff);
             };
 
             const chart = new Chart(document.getElementById('price-chart'), {
                 type: 'line',
                 data: {
-                    labels: points.map((point) => point.date),
+                    labels: [],
                     datasets: [{
                         label: 'Price ($)',
-                        data: points.map((point) => point.price),
+                        data: [],
                         borderColor: '#38bdf8',
                         backgroundColor: 'rgba(56, 189, 248, 0.1)',
                         fill: true,
@@ -137,17 +183,32 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        x: { ticks: { color: '#a1a1aa' }, grid: { color: 'rgba(255, 255, 255, 0.06)' } },
-                        y: { ticks: { color: '#a1a1aa', callback: (value) => '$' + value }, grid: { color: 'rgba(255, 255, 255, 0.06)' } },
+                        x: {
+                            ticks: { color: '#a1a1aa', autoSkip: false, maxRotation: 0 },
+                            grid: { color: 'rgba(255, 255, 255, 0.06)' },
+                        },
+                        y: {
+                            ticks: { color: '#a1a1aa', callback: (value) => '$' + value },
+                            grid: { color: 'rgba(255, 255, 255, 0.06)' },
+                        },
                     },
-                    plugins: { legend: { labels: { color: '#e4e4e7' } } },
+                    plugins: {
+                        legend: { labels: { color: '#e4e4e7' } },
+                        tooltip: {
+                            callbacks: {
+                                title: (items) => formatDate(currentDates[items[0].dataIndex] ?? ''),
+                                label: (item) => '$' + item.parsed.y.toFixed(2),
+                            },
+                        },
+                    },
                 },
             });
 
             const render = (range) => {
                 const data = withinRange(rangeDays[range]);
+                currentDates = data.map((point) => point.date);
 
-                chart.data.labels = data.map((point) => point.date);
+                chart.data.labels = axisLabels(data);
                 chart.data.datasets[0].data = data.map((point) => point.price);
                 chart.update();
 
@@ -164,6 +225,8 @@
                     render(button.dataset.range);
                 });
             });
+
+            render('all');
         </script>
     @endif
 @endpush

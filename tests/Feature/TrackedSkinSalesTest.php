@@ -244,4 +244,17 @@ class TrackedSkinSalesTest extends TestCase
 
         Http::assertNothingSent();
     }
+
+    #[Test]
+    public function it_uses_relative_days_ago_axis_labels_and_keeps_the_date_in_the_tooltip(): void
+    {
+        $skin = $this->skin();
+        $this->sale($skin);
+
+        $this->get(route('skins.sales', $skin))
+            ->assertOk()
+            ->assertSee("'d ago'", false)
+            ->assertSee('tooltip:', false)
+            ->assertSee('formatDate', false);
+    }
 }
