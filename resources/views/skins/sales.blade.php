@@ -43,6 +43,29 @@
         </div>
     </div>
 
+    @if ($chart->isNotEmpty())
+        <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+            <div class="mb-4 flex items-center justify-between gap-4">
+                <p class="text-xs uppercase tracking-wide text-zinc-500">Price history</p>
+                <div class="flex gap-1">
+                    <button type="button" data-range="7"
+                            class="js-range rounded-lg px-3 py-1 text-sm text-zinc-400 hover:bg-zinc-800">7 days</button>
+                    <button type="button" data-range="30"
+                            class="js-range rounded-lg px-3 py-1 text-sm text-zinc-400 hover:bg-zinc-800">30 days</button>
+                    <button type="button" data-range="90"
+                            class="js-range rounded-lg px-3 py-1 text-sm text-zinc-400 hover:bg-zinc-800">90 days</button>
+                    <button type="button" data-range="all"
+                            class="js-range rounded-lg bg-sky-600 px-3 py-1 text-sm font-medium text-white">All</button>
+                </div>
+            </div>
+
+            <div id="chart-wrap" class="h-80">
+                <canvas id="price-chart"></canvas>
+            </div>
+            <p id="chart-empty" class="hidden py-8 text-center text-sm text-zinc-500">No sales in this range.</p>
+        </div>
+    @endif
+
     <div class="rounded-xl border border-zinc-800 bg-zinc-900">
         <table class="w-full text-sm">
             <thead>
@@ -74,3 +97,73 @@
 
     {{ $sales->links() }}
 @endsection
+
+@push('scripts')
+    @if ($chart->isNotEmpty())
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+        <script>
+            const points = @json($chart);
+            const rangeDays = { '7': 7, '30': 30, '90': 90, 'all': null };
+
+            const idleClass = 'js-range rounded-lg px-3 py-1 text-sm text-zinc-400 hover:bg-zinc-800';
+            const activeClass = 'js-range rounded-lg bg-sky-600 px-3 py-1 text-sm font-medium text-white';
+
+            const chartWrap = document.getElementById('chart-wrap');
+            const chartEmpty = document.getElementById('chart-empty');
+
+            const timestamp = (point) => new Date(point.date.replace(' ', 'T')).getTime();
+
+            const withinRange = (days) => {
+                if (days === null) return points;
+                const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+                return points.filter((point) => timestamp(point) >= cutoff);
+            };
+
+            const chart = new Chart(document.getElementById('price-chart'), {
+                type: 'line',
+                data: {
+                    labels: points.map((point) => point.date),
+                    datasets: [{
+                        label: 'Price ($)',
+                        data: points.map((point) => point.price),
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 2,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { ticks: { color: '#a1a1aa' }, grid: { color: 'rgba(255, 255, 255, 0.06)' } },
+                        y: { ticks: { color: '#a1a1aa', callback: (value) => '$' + value }, grid: { color: 'rgba(255, 255, 255, 0.06)' } },
+                    },
+                    plugins: { legend: { labels: { color: '#e4e4e7' } } },
+                },
+            });
+
+            const render = (range) => {
+                const data = withinRange(rangeDays[range]);
+
+                chart.data.labels = data.map((point) => point.date);
+                chart.data.datasets[0].data = data.map((point) => point.price);
+                chart.update();
+
+                chartWrap.classList.toggle('hidden', data.length === 0);
+                chartEmpty.classList.toggle('hidden', data.length !== 0);
+            };
+
+            document.querySelectorAll('.js-range').forEach((button) => {
+                button.addEventListener('click', () => {
+                    document.querySelectorAll('.js-range').forEach((other) => {
+                        other.className = other === button ? activeClass : idleClass;
+                    });
+
+                    render(button.dataset.range);
+                });
+            });
+        </script>
+    @endif
+@endpush

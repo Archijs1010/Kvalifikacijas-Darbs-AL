@@ -21,10 +21,12 @@ Route::get('/skins/{skin}/edit', [TrackedSkinController::class, 'edit'])->name('
 Route::put('/skins/{skin}', [TrackedSkinController::class, 'update'])->name('skins.update');
 
 Route::get('/skins/{skin}/sales', function (TrackedSkin $skin) {
-    $prices = Sale::query()
+    $stored = Sale::query()
         ->where('market_hash_name', $skin->market_hash_name)
-        ->pluck('price')
-        ->map(fn ($price) => (float) $price);
+        ->orderBy('sold_at')
+        ->get(['sold_at', 'price']);
+
+    $prices = $stored->pluck('price')->map(fn ($price) => (float) $price);
 
     return view('skins.sales', [
         'skin' => $skin,
@@ -35,6 +37,15 @@ Route::get('/skins/{skin}/sales', function (TrackedSkin $skin) {
             'average' => $prices->avg(),
             'median' => $prices->median(),
         ],
+        // Every stored sale travels with the page so the range selector can
+        // redraw the chart client-side without asking CSFloat for anything.
+        'chart' => $stored
+            ->filter(fn (Sale $sale) => $sale->sold_at !== null)
+            ->map(fn (Sale $sale) => [
+                'date' => $sale->sold_at->format('Y-m-d H:i:s'),
+                'price' => (float) $sale->price,
+            ])
+            ->values(),
         'sales' => Sale::query()
             ->where('market_hash_name', $skin->market_hash_name)
             ->orderByDesc('sold_at')
