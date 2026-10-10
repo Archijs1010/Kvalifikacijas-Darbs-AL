@@ -113,7 +113,9 @@
             <tbody>
             @forelse ($sales as $sale)
                 <tr class="border-b border-zinc-800/60 last:border-0">
-                    <td class="whitespace-nowrap px-5 py-3 text-zinc-400">{{ $sale->sold_at?->format('M j, Y H:i') ?? '—' }}</td>
+                    <td class="whitespace-nowrap px-5 py-3 text-zinc-400">
+                        <a href="{{ route('sales.show', $sale) }}" class="hover:text-sky-400">{{ $sale->sold_at?->format('M j, Y H:i') ?? '—' }}</a>
+                    </td>
                     <td class="px-5 py-3 text-zinc-400">{{ $sale->phase ?? '—' }}</td>
                     <td class="whitespace-nowrap px-5 py-3 text-right">${{ number_format((float) $sale->price, 2) }}</td>
                     <td class="whitespace-nowrap px-5 py-3 text-right text-zinc-400">{{ $sale->float_value === null ? '—' : number_format((float) $sale->float_value, 6) }}</td>

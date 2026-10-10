@@ -166,7 +166,16 @@
                         },
                     });
                     const data = await res.json();
-                    if (!res.ok) throw new Error(data.message || 'Import failed');
+
+                    if (!res.ok) {
+                        status.className = 'js-import-status ml-2 text-xs '
+                            + (data.rate_limited ? 'text-amber-400' : 'text-red-400');
+                        status.textContent = data.message || 'Import failed.';
+                        status.title = data.category === 'auth'
+                            ? 'The server-side CSFloat API key was rejected.'
+                            : '';
+                        return;
+                    }
 
                     if (data.no_sales) {
                         status.className = 'js-import-status ml-2 text-xs text-amber-400';

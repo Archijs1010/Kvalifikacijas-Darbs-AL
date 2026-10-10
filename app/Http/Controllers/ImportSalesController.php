@@ -22,7 +22,9 @@ class ImportSalesController extends Controller
         $successfulSkins = [];
         $failedSkins = [];
         $noSalesSkins = [];
+        $errors = [];
         $rateLimited = false;
+        $rateLimit = null;
         $notAttempted = [];
 
         $skins = TrackedSkin::query()
@@ -36,6 +38,13 @@ class ImportSalesController extends Controller
             if ($result['rate_limited']) {
                 $rateLimited = true;
                 $failedSkins[] = $skin->market_hash_name;
+                $errors[$skin->market_hash_name] = $result['error_message'];
+                $rateLimit = [
+                    'message' => $result['error_message'],
+                    'retry_after' => $result['retry_after'],
+                    'limit' => $result['rate_limit'],
+                    'remaining' => $result['rate_remaining'],
+                ];
                 $notAttempted = $skins->slice($index + 1)->pluck('market_hash_name')->all();
 
                 break;
@@ -43,6 +52,7 @@ class ImportSalesController extends Controller
 
             if ($result['failed']) {
                 $failedSkins[] = $skin->market_hash_name;
+                $errors[$skin->market_hash_name] = $result['error_message'];
 
                 continue;
             }
@@ -70,8 +80,10 @@ class ImportSalesController extends Controller
             'wrong_phase' => $wrongPhase,
             'successful_skins' => $successfulSkins,
             'failed_skins' => $failedSkins,
+            'errors' => $errors,
             'no_sales_skins' => $noSalesSkins,
             'rate_limited' => $rateLimited,
+            'rate_limit' => $rateLimit,
             'not_attempted' => $notAttempted,
             'usage' => ApiRequest::usage(),
         ]);

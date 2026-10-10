@@ -129,6 +129,13 @@ Route::get('/sales', function (Request $request) {
     ]);
 })->name('sales.index');
 
+Route::get('/sales/{sale}', function (Sale $sale) {
+    return view('sales.show', [
+        'sale' => $sale,
+        'rawJson' => json_encode($sale->raw_json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+    ]);
+})->name('sales.show');
+
 Route::get('/analytics', function (Request $request) {
     $skins = TrackedSkin::orderBy('market_hash_name')->pluck('market_hash_name');
 

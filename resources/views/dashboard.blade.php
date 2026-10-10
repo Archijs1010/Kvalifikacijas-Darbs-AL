@@ -204,8 +204,11 @@
                     const notAttempted = data.not_attempted.length
                         ? ' Not attempted: ' + names(data.not_attempted) + '.'
                         : '';
-                    note.textContent = 'CSFloat rate limit reached — the run was stopped early so no more '
-                        + 'requests were sent.' + notAttempted;
+                    const base = data.rate_limit && data.rate_limit.message
+                        ? data.rate_limit.message
+                        : 'CSFloat rate limit reached — the run was stopped early so no more '
+                            + 'requests were sent.';
+                    note.textContent = base + notAttempted;
                     show('rate-limit-note');
                 }
 

@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Exceptions\CSFloatException;
 use App\Models\Sale;
 use App\Models\TrackedSkin;
-use Illuminate\Http\Client\RequestException;
 use Throwable;
 
 class SalesImporter
@@ -26,19 +26,35 @@ class SalesImporter
             'no_sales' => false,
             'failed' => false,
             'rate_limited' => false,
+            'error_category' => null,
+            'error_message' => null,
+            'error_status' => null,
+            'retry_after' => null,
+            'rate_limit' => null,
+            'rate_remaining' => null,
         ];
 
         try {
             $entries = $this->mapper->salesList(
                 $this->csfloat->getSales($skin->market_hash_name)
             );
-        } catch (RequestException $exception) {
+        } catch (CSFloatException $exception) {
             $totals['failed'] = true;
-            $totals['rate_limited'] = $exception->response->status() === 429;
+            $totals['rate_limited'] = $exception->isRateLimited();
+            $totals['error_category'] = $exception->category;
+            $totals['error_message'] = $exception->getMessage();
+            $totals['error_status'] = $exception->status;
+            $totals['retry_after'] = $exception->retryAfter;
+            $totals['rate_limit'] = $exception->rateLimit;
+            $totals['rate_remaining'] = $exception->rateRemaining;
 
             return $totals;
-        } catch (Throwable) {
+        } catch (Throwable $exception) {
+            $mapped = CSFloatException::unknown($exception);
+
             $totals['failed'] = true;
+            $totals['error_category'] = $mapped->category;
+            $totals['error_message'] = $mapped->getMessage();
 
             return $totals;
         }

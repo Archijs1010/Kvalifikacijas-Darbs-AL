@@ -16,8 +16,14 @@ class ImportSkinSalesController extends Controller
 
         if ($result['failed']) {
             return response()->json([
-                'message' => "Failed to fetch sales for {$skin->market_hash_name}.",
-            ], 502);
+                'message' => $result['error_message']
+                    ?? "Failed to fetch sales for {$skin->market_hash_name}.",
+                'category' => $result['error_category'],
+                'rate_limited' => $result['rate_limited'],
+                'retry_after' => $result['retry_after'],
+                'rate_limit' => $result['rate_limit'],
+                'rate_remaining' => $result['rate_remaining'],
+            ], $result['rate_limited'] ? 429 : 502);
         }
 
         return response()->json([

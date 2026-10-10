@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\CSFloatException;
 use App\Services\CSFloatService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -13,12 +14,26 @@ Artisan::command('csfloat:test', function (CSFloatService $csfloat) {
 
     $this->line("Testing: {$marketHashName}");
 
-    $response = $csfloat->salesResponse($marketHashName);
+    try {
+        $response = $csfloat->salesResponse($marketHashName);
+    } catch (CSFloatException $exception) {
+        $this->error($exception->getMessage());
+
+        return;
+    }
 
     $this->info('HTTP status: '.$response->status());
 
-    if ($response->failed()) {
-        $this->error('Request failed.');
+    if ($exception = CSFloatException::fromResponse($response)) {
+        $this->error($exception->getMessage());
+
+        if ($exception->isRateLimited() && $exception->retryAfter !== null) {
+            $this->warn('Retry after: '.$exception->retryAfter.' seconds');
+        }
+
+        if ($exception->rateRemaining !== null) {
+            $this->warn('Remaining quota: '.$exception->rateRemaining.' / '.$exception->rateLimit);
+        }
 
         return;
     }
