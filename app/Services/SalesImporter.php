@@ -14,25 +14,6 @@ class SalesImporter
         private readonly CSFloatSaleMapper $mapper,
     ) {}
 
-    /**
-     * Fetch, map and persist the sales for a single tracked skin.
-     *
-     * Sales that fall outside the skin's configured float range or that carry
-     * a different phase are never persisted, and sale ids already on disk are
-     * never written twice.
-     *
-     * @return array{
-     *     imported: int,
-     *     skipped: int,
-     *     skipped_duplicates: int,
-     *     skipped_out_of_range: int,
-     *     skipped_wrong_phase: int,
-     *     skipped_malformed: int,
-     *     no_sales: bool,
-     *     failed: bool,
-     *     rate_limited: bool
-     * }
-     */
     public function importSkin(TrackedSkin $skin): array
     {
         $totals = [
@@ -53,9 +34,6 @@ class SalesImporter
             );
         } catch (RequestException $exception) {
             $totals['failed'] = true;
-            // CSFloat answers an exhausted rate limit with 429. That is a
-            // signal to stop asking, not an error to retry against, so the
-            // caller has to be able to tell it apart from an ordinary failure.
             $totals['rate_limited'] = $exception->response->status() === 429;
 
             return $totals;
@@ -65,9 +43,6 @@ class SalesImporter
             return $totals;
         }
 
-        // CSFloat answers an unknown market hash name with HTTP 200 and an
-        // empty list rather than a 404, so "nothing came back" has to be
-        // reported distinctly from "nothing new to import".
         $totals['no_sales'] = $entries === [];
 
         $existingSaleIds = Sale::query()
@@ -119,11 +94,6 @@ class SalesImporter
         return $totals;
     }
 
-    /**
-     * Rows stored before paint_seed/phase existed still hold the complete
-     * CSFloat payload in raw_json, so those values can be recovered locally
-     * instead of waiting for CSFloat to return that sale again.
-     */
     private function backfillItemAttributes(string $marketHashName): void
     {
         Sale::query()
@@ -152,11 +122,6 @@ class SalesImporter
             });
     }
 
-    /**
-     * A skin with no configured phase accepts every sale, including phaseless
-     * items such as gloves. When a phase *is* configured, a sale without one
-     * cannot satisfy it and is rejected rather than silently admitted.
-     */
     private function matchesPhase(?string $phase, TrackedSkin $skin): bool
     {
         $wanted = $skin->phase !== null ? trim((string) $skin->phase) : null;
@@ -172,11 +137,6 @@ class SalesImporter
         return strcasecmp($phase, $wanted) === 0;
     }
 
-    /**
-     * A skin with no configured bounds accepts every sale. When a bound *is*
-     * configured, a sale without a float value cannot be confirmed as in range
-     * and is therefore rejected rather than silently admitted.
-     */
     private function withinRange(?float $value, TrackedSkin $skin): bool
     {
         $min = $skin->min_float !== null ? (float) $skin->min_float : null;

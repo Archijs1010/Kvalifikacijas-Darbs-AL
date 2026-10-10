@@ -13,8 +13,6 @@ Route::get('/', function () {
     return view('dashboard', [
         'totalSkins' => TrackedSkin::count(),
         'totalSales' => Sale::count(),
-        // Local tally of outbound calls, so the remaining CSFloat quota can be
-        // read without spending another request to ask for it.
         'apiUsage' => ApiRequest::usage(),
         'recentApiRequests' => ApiRequest::query()->orderByDesc('requested_at')->limit(10)->get(),
     ]);
@@ -25,16 +23,33 @@ Route::post('/skins', [TrackedSkinController::class, 'store'])->name('skins.stor
 Route::get('/skins/{skin}/edit', [TrackedSkinController::class, 'edit'])->name('skins.edit');
 Route::put('/skins/{skin}', [TrackedSkinController::class, 'update'])->name('skins.update');
 
-Route::get('/skins/{skin}/sales', function (TrackedSkin $skin) {
-    $stored = Sale::query()
-        ->where('market_hash_name', $skin->market_hash_name)
+Route::get('/skins/{skin}/sales', function (Request $request, TrackedSkin $skin) {
+    $minFloat = is_numeric($request->input('min_float')) ? (float) $request->input('min_float') : null;
+    $maxFloat = is_numeric($request->input('max_float')) ? (float) $request->input('max_float') : null;
+
+    $filtered = Sale::query()->where('market_hash_name', $skin->market_hash_name);
+
+    if ($minFloat !== null) {
+        $filtered->where('float_value', '>=', $minFloat);
+    }
+
+    if ($maxFloat !== null) {
+        $filtered->where('float_value', '<=', $maxFloat);
+    }
+
+    $stored = (clone $filtered)
         ->orderBy('sold_at')
-        ->get(['sold_at', 'price']);
+        ->get(['sold_at', 'price', 'float_value']);
 
     $prices = $stored->pluck('price')->map(fn ($price) => (float) $price);
 
     return view('skins.sales', [
         'skin' => $skin,
+        'filters' => [
+            'min_float' => $minFloat,
+            'max_float' => $maxFloat,
+        ],
+        'hasSales' => Sale::query()->where('market_hash_name', $skin->market_hash_name)->exists(),
         'stats' => [
             'count' => $prices->count(),
             'lowest' => $prices->min(),
@@ -42,19 +57,18 @@ Route::get('/skins/{skin}/sales', function (TrackedSkin $skin) {
             'average' => $prices->avg(),
             'median' => $prices->median(),
         ],
-        // Every stored sale travels with the page so the range selector can
-        // redraw the chart client-side without asking CSFloat for anything.
         'chart' => $stored
             ->filter(fn (Sale $sale) => $sale->sold_at !== null)
             ->map(fn (Sale $sale) => [
                 'date' => $sale->sold_at->format('Y-m-d H:i:s'),
                 'price' => (float) $sale->price,
+                'float' => $sale->float_value === null ? null : (float) $sale->float_value,
             ])
             ->values(),
-        'sales' => Sale::query()
-            ->where('market_hash_name', $skin->market_hash_name)
+        'sales' => (clone $filtered)
             ->orderByDesc('sold_at')
-            ->paginate(25),
+            ->paginate(25)
+            ->withQueryString(),
     ]);
 })->name('skins.sales');
 

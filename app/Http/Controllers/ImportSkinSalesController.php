@@ -6,9 +6,6 @@ use App\Models\TrackedSkin;
 use App\Services\SalesImporter;
 use Illuminate\Http\JsonResponse;
 
-/**
- * Manual, one skin at a time import driven by the button on the skins index.
- */
 class ImportSkinSalesController extends Controller
 {
     public function __construct(private readonly SalesImporter $importer) {}

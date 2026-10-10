@@ -4,19 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 
 #[Fillable(['market_hash_name', 'status', 'rate_limit', 'rate_remaining', 'requested_at'])]
 class ApiRequest extends Model
 {
     public $timestamps = false;
 
-    /**
-     * Summarise outbound API traffic. The remaining quota comes from the
-     * headers of the most recent call, so it never costs a request to read.
-     *
-     * @return array{today: int, last_day: int, total: int, remaining: int|null, limit: int|null, last_at: Carbon|null}
-     */
     public static function usage(): array
     {
         $latestQuota = static::query()
@@ -34,11 +27,6 @@ class ApiRequest extends Model
         ];
     }
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [

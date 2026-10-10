@@ -152,7 +152,6 @@ class ImportSkinSalesTest extends TestCase
     #[Test]
     public function it_applies_the_min_float_bound(): void
     {
-        // AK fixtures: 0.21882218 and 0.31110835
         $this->fakeCSFloat();
         $ak = $this->track('AK-47 | Redline (Field-Tested)', min: 0.25);
 
@@ -361,7 +360,6 @@ class ImportSkinSalesTest extends TestCase
     #[Test]
     public function it_flags_an_unknown_name_instead_of_reporting_a_silent_zero(): void
     {
-        // CSFloat answers an unknown market hash name with 200 + [].
         Http::fake(['csfloat.com/*' => Http::response([], 200)]);
         $ak = $this->track('★ AK-47 | Redline (Field-Tested)');
 
@@ -524,7 +522,6 @@ class ImportSkinSalesTest extends TestCase
             'price' => 33.61,
             'sold_at' => $entry['sold_at'],
             'raw_json' => $entry,
-            // no paint_seed: written before the column existed
         ]);
 
         $this->assertNull(Sale::sole()->paint_seed);

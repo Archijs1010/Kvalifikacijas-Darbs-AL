@@ -2,19 +2,10 @@
 
 namespace Database\Factories;
 
-use App\Models\Sale;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<Sale>
- */
 class SaleFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         $saleId = fake()->unique()->uuid();

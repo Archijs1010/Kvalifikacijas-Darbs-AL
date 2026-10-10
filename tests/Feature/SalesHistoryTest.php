@@ -191,9 +191,6 @@ class SalesHistoryTest extends TestCase
         ]);
     }
 
-    /**
-     * @param  array<string, mixed>  $overrides
-     */
     private function sale(array $overrides = []): Sale
     {
         static $i = 0;

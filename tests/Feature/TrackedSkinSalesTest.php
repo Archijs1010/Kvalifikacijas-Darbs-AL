@@ -18,9 +18,6 @@ class TrackedSkinSalesTest extends TestCase
         ], $overrides));
     }
 
-    /**
-     * @param  array<string, mixed>  $overrides
-     */
     private function sale(TrackedSkin $skin, array $overrides = []): Sale
     {
         static $i = 0;
@@ -163,9 +160,6 @@ class TrackedSkinSalesTest extends TestCase
             ->assertSee('/skins/'.$skin->id.'/sales', false);
     }
 
-    /**
-     * @return array<int, array{date: string, price: float}>
-     */
     private function chartPoints(string $html): array
     {
         preg_match('/const points = (\[.*?\]);/s', $html, $matches);
@@ -178,14 +172,14 @@ class TrackedSkinSalesTest extends TestCase
     {
         $skin = $this->skin();
 
-        $this->sale($skin, ['price' => 222.22, 'sold_at' => '2026-10-02 10:00:00']);
-        $this->sale($skin, ['price' => 111.11, 'sold_at' => '2026-10-01 10:00:00']);
+        $this->sale($skin, ['price' => 222.22, 'sold_at' => '2026-10-02 10:00:00', 'float_value' => '0.12345678']);
+        $this->sale($skin, ['price' => 111.11, 'sold_at' => '2026-10-01 10:00:00', 'float_value' => '0.20000000']);
 
         $response = $this->get(route('skins.sales', $skin))->assertOk();
 
         $this->assertSame([
-            ['date' => '2026-10-01 10:00:00', 'price' => 111.11],
-            ['date' => '2026-10-02 10:00:00', 'price' => 222.22],
+            ['date' => '2026-10-01 10:00:00', 'price' => 111.11, 'float' => 0.2],
+            ['date' => '2026-10-02 10:00:00', 'price' => 222.22, 'float' => 0.12345678],
         ], $this->chartPoints($response->getContent()));
     }
 
@@ -256,5 +250,103 @@ class TrackedSkinSalesTest extends TestCase
             ->assertSee("'d ago'", false)
             ->assertSee('tooltip:', false)
             ->assertSee('formatDate', false);
+    }
+
+    #[Test]
+    public function it_renders_a_float_versus_price_scatter_chart(): void
+    {
+        $skin = $this->skin();
+        $this->sale($skin, ['float_value' => '0.15000000']);
+
+        $this->get(route('skins.sales', $skin))
+            ->assertOk()
+            ->assertSee('id="scatter-chart"', false)
+            ->assertSee("type: 'scatter'", false)
+            ->assertSee('Float vs price')
+            ->assertSee("text: 'Float'", false)
+            ->assertSee("text: 'Price ($)'", false);
+    }
+
+    #[Test]
+    public function it_plots_a_scatter_point_per_sale_using_float_and_price(): void
+    {
+        $skin = $this->skin();
+        $this->sale($skin, ['float_value' => '0.10000000']);
+        $this->sale($skin, ['float_value' => '0.40000000']);
+
+        $response = $this->get(route('skins.sales', $skin))->assertOk();
+
+        $points = $this->chartPoints($response->getContent());
+        $this->assertSame([0.1, 0.4], array_column($points, 'float'));
+    }
+
+    #[Test]
+    public function it_filters_the_sales_and_both_charts_by_float_range(): void
+    {
+        $skin = $this->skin();
+
+        $this->sale($skin, ['price' => 100, 'float_value' => '0.10000000']);
+        $this->sale($skin, ['price' => 200, 'float_value' => '0.50000000']);
+        $this->sale($skin, ['price' => 300, 'float_value' => '0.90000000']);
+
+        $response = $this->get(route('skins.sales', [
+            'skin' => $skin,
+            'min_float' => '0.2',
+            'max_float' => '0.6',
+        ]))->assertOk();
+
+        $response->assertSee('$200.00');
+        $response->assertDontSee('$100.00');
+        $response->assertDontSee('$300.00');
+
+        $points = $this->chartPoints($response->getContent());
+        $this->assertEquals([200.0], array_column($points, 'price'));
+        $this->assertSame([0.5], array_column($points, 'float'));
+    }
+
+    #[Test]
+    public function it_shows_the_float_filter_form(): void
+    {
+        $skin = $this->skin();
+        $this->sale($skin);
+
+        $this->get(route('skins.sales', ['skin' => $skin, 'min_float' => '0.05']))
+            ->assertOk()
+            ->assertSee('name="min_float"', false)
+            ->assertSee('name="max_float"', false)
+            ->assertSee('value="0.05"', false);
+    }
+
+    #[Test]
+    public function it_keeps_the_float_filter_on_pagination_links(): void
+    {
+        $skin = $this->skin();
+        $base = new \DateTimeImmutable('2026-10-01 00:00:00');
+
+        foreach (range(1, 30) as $i) {
+            $this->sale($skin, [
+                'price' => $i,
+                'float_value' => '0.10000000',
+                'sold_at' => $base->modify("+{$i} minutes")->format('Y-m-d H:i:s'),
+            ]);
+        }
+
+        $this->get(route('skins.sales', ['skin' => $skin, 'min_float' => '0.05']))
+            ->assertOk()
+            ->assertSee('min_float=0.05', false);
+    }
+
+    #[Test]
+    public function it_makes_no_csfloat_request_even_with_a_float_filter(): void
+    {
+        Http::fake();
+
+        $skin = $this->skin();
+        $this->sale($skin, ['float_value' => '0.15000000']);
+
+        $this->get(route('skins.sales', ['skin' => $skin, 'min_float' => '0.1', 'max_float' => '0.2']))
+            ->assertOk();
+
+        Http::assertNothingSent();
     }
 }

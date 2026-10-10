@@ -43,10 +43,36 @@
         </div>
     </div>
 
-    @if ($chart->isNotEmpty())
-        <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-            <div class="mb-4 flex items-center justify-between gap-4">
-                <p class="text-xs uppercase tracking-wide text-zinc-500">Price history</p>
+    <form method="GET" action="{{ route('skins.sales', $skin) }}"
+          class="mt-4 flex flex-wrap items-end gap-3 rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+        <div class="flex flex-col gap-1">
+            <label for="min_float" class="text-xs uppercase tracking-wide text-zinc-500">Min float</label>
+            <input id="min_float" name="min_float" type="number" min="0" max="1" step="0.0001"
+                   value="{{ $filters['min_float'] ?? '' }}"
+                   class="w-32 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none">
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label for="max_float" class="text-xs uppercase tracking-wide text-zinc-500">Max float</label>
+            <input id="max_float" name="max_float" type="number" min="0" max="1" step="0.0001"
+                   value="{{ $filters['max_float'] ?? '' }}"
+                   class="w-32 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none">
+        </div>
+
+        <button type="submit"
+                class="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500">
+            Apply
+        </button>
+        <a href="{{ route('skins.sales', $skin) }}"
+           class="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800">
+            Clear
+        </a>
+    </form>
+
+    @if ($hasSales)
+        <div class="mt-4 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-4">
+                <p class="text-xs uppercase tracking-wide text-zinc-500">Analytics</p>
                 <div class="flex gap-1">
                     <button type="button" data-range="7"
                             class="js-range rounded-lg px-3 py-1 text-sm text-zinc-400 hover:bg-zinc-800">7 days</button>
@@ -59,10 +85,17 @@
                 </div>
             </div>
 
-            <div id="chart-wrap" class="h-80">
+            <p class="text-xs uppercase tracking-wide text-zinc-500">Price over time</p>
+            <div id="chart-wrap" class="mt-2 h-72">
                 <canvas id="price-chart"></canvas>
             </div>
             <p id="chart-empty" class="hidden py-8 text-center text-sm text-zinc-500">No sales in this range.</p>
+
+            <p class="mt-6 text-xs uppercase tracking-wide text-zinc-500">Float vs price</p>
+            <div id="scatter-wrap" class="mt-2 h-72">
+                <canvas id="scatter-chart"></canvas>
+            </div>
+            <p id="scatter-empty" class="hidden py-8 text-center text-sm text-zinc-500">No sales with a float value in this range.</p>
         </div>
     @endif
 
@@ -99,7 +132,7 @@
 @endsection
 
 @push('scripts')
-    @if ($chart->isNotEmpty())
+    @if ($hasSales)
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
         <script>
             const points = @json($chart);
@@ -110,6 +143,8 @@
 
             const chartWrap = document.getElementById('chart-wrap');
             const chartEmpty = document.getElementById('chart-empty');
+            const scatterWrap = document.getElementById('scatter-wrap');
+            const scatterEmpty = document.getElementById('scatter-empty');
 
             const DAY = 24 * 60 * 60 * 1000;
             const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -120,8 +155,6 @@
 
             const daysAgo = (point) => Math.max(0, Math.round((Date.now() - timestamp(point)) / DAY));
 
-            // A 7 day window reads best day by day, a month week by week, a
-            // quarter month by month, and anything longer in quarters.
             const tickStep = (maxDaysAgo) => {
                 if (maxDaysAgo <= 7) return 1;
                 if (maxDaysAgo <= 14) return 2;
@@ -130,8 +163,6 @@
                 return Math.ceil(maxDaysAgo / 4);
             };
 
-            // The axis speaks in "days ago" while the tooltip keeps the exact
-            // sale timestamp, so the raw dates stay available next to the data.
             const axisLabels = (data) => {
                 if (data.length === 0) return [];
 
@@ -204,6 +235,45 @@
                 },
             });
 
+            const scatterChart = new Chart(document.getElementById('scatter-chart'), {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Sales',
+                        data: [],
+                        backgroundColor: 'rgba(56, 189, 248, 0.65)',
+                        borderColor: '#38bdf8',
+                        pointRadius: 3,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: { display: true, text: 'Float', color: '#a1a1aa' },
+                            ticks: { color: '#a1a1aa' },
+                            grid: { color: 'rgba(255, 255, 255, 0.06)' },
+                        },
+                        y: {
+                            title: { display: true, text: 'Price ($)', color: '#a1a1aa' },
+                            ticks: { color: '#a1a1aa', callback: (value) => '$' + value },
+                            grid: { color: 'rgba(255, 255, 255, 0.06)' },
+                        },
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#e4e4e7' } },
+                        tooltip: {
+                            callbacks: {
+                                title: (items) => formatDate(items[0].raw.d ?? ''),
+                                label: (item) => 'float ' + item.parsed.x.toFixed(6) + ' · $' + item.parsed.y.toFixed(2),
+                            },
+                        },
+                    },
+                },
+            });
+
             const render = (range) => {
                 const data = withinRange(rangeDays[range]);
                 currentDates = data.map((point) => point.date);
@@ -212,8 +282,17 @@
                 chart.data.datasets[0].data = data.map((point) => point.price);
                 chart.update();
 
+                const scatter = data
+                    .filter((point) => point.float !== null && point.float !== undefined)
+                    .map((point) => ({ x: point.float, y: point.price, d: point.date }));
+
+                scatterChart.data.datasets[0].data = scatter;
+                scatterChart.update();
+
                 chartWrap.classList.toggle('hidden', data.length === 0);
                 chartEmpty.classList.toggle('hidden', data.length !== 0);
+                scatterWrap.classList.toggle('hidden', scatter.length === 0);
+                scatterEmpty.classList.toggle('hidden', scatter.length !== 0);
             };
 
             document.querySelectorAll('.js-range').forEach((button) => {

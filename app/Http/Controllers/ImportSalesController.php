@@ -7,11 +7,6 @@ use App\Models\TrackedSkin;
 use App\Services\SalesImporter;
 use Illuminate\Http\JsonResponse;
 
-/**
- * Imports every enabled tracked skin sequentially, in one request, without a
- * queue. A skin that fails does not stop the run; an exhausted rate limit does,
- * because continuing would only earn more 429s.
- */
 class ImportSalesController extends Controller
 {
     public function __construct(private readonly SalesImporter $importer) {}
@@ -78,7 +73,6 @@ class ImportSalesController extends Controller
             'no_sales_skins' => $noSalesSkins,
             'rate_limited' => $rateLimited,
             'not_attempted' => $notAttempted,
-            // Fresh tally so the dashboard usage card updates without a reload.
             'usage' => ApiRequest::usage(),
         ]);
     }

@@ -14,11 +14,6 @@ class ImportSalesTest extends TestCase
 {
     use LoadsCSFloatFixtures;
 
-    /**
-     * Route a CSFloat history request to the captured fixture for the matching skin.
-     *
-     * @param  array<string, mixed>  $overrides  skin name => payload
-     */
     private function fakeCSFloat(array $overrides = []): void
     {
         $sales = $this->groupedFixture();
@@ -34,11 +29,6 @@ class ImportSalesTest extends TestCase
         });
     }
 
-    /**
-     * The captured fixture grouped by the skin it belongs to.
-     *
-     * @return array<string, array<int, array<string, mixed>>>
-     */
     private function groupedFixture(): array
     {
         return collect($this->csfloatSalesFixture())
@@ -336,7 +326,6 @@ class ImportSalesTest extends TestCase
             ]);
 
         $this->assertSame(0, Sale::count());
-        // The 429 plus nothing else: the remaining skins were never asked for.
         Http::assertSentCount(1);
     }
 

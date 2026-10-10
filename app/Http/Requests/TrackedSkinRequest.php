@@ -5,25 +5,13 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/**
- * Shared by the store and update actions: the field set is identical, and the
- * uniqueness check ignores the skin currently being edited via the route.
- */
 class TrackedSkinRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, mixed>
-     */
     public function rules(): array
     {
         $rules = [
@@ -52,11 +40,6 @@ class TrackedSkinRequest extends FormRequest
         return $rules;
     }
 
-    /**
-     * Get custom messages for validator errors.
-     *
-     * @return array<string, string>
-     */
     public function messages(): array
     {
         return [
@@ -65,9 +48,6 @@ class TrackedSkinRequest extends FormRequest
         ];
     }
 
-    /**
-     * Normalise the raw input before validation runs.
-     */
     protected function prepareForValidation(): void
     {
         $name = $this->input('market_hash_name');

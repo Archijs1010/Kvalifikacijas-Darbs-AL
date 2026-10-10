@@ -27,12 +27,6 @@ class CSFloatService
         return $response;
     }
 
-    /**
-     * Keep a local tally of every call so the remaining CSFloat quota can be
-     * checked without spending another request to ask for it. Bookkeeping is
-     * strictly auxiliary: a failure here must never break the request it
-     * observes.
-     */
     private function record(string $marketHashName, Response $response): void
     {
         try {
