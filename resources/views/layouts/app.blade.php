@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>CSFloat Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    @include('partials.theme-head')
 </head>
 <body class="bg-zinc-950 text-zinc-100 min-h-screen">
 <header class="border-b border-zinc-800 bg-zinc-900/60">
@@ -19,6 +20,7 @@
            class="text-sm {{ request()->routeIs('sales.index') ? 'text-sky-400' : 'text-zinc-400 hover:text-zinc-100' }}">Sales History</a>
         <a href="{{ route('analytics.index') }}"
            class="text-sm {{ request()->routeIs('analytics.index') ? 'text-sky-400' : 'text-zinc-400 hover:text-zinc-100' }}">Analytics</a>
+        @include('partials.theme-selector')
     </nav>
 </header>
 
@@ -42,6 +44,7 @@
     @yield('content')
 </main>
 
+@include('partials.theme-script')
 @stack('scripts')
 </body>
 </html>

@@ -60,30 +60,56 @@
     @if (count($chart['prices']) > 0)
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
         <script>
-            new Chart(document.getElementById('price-chart'), {
-                type: 'line',
-                data: {
-                    labels: @json($chart['labels']),
-                    datasets: [{
-                        label: 'Price ($)',
-                        data: @json($chart['prices']),
-                        borderColor: '#38bdf8',
-                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 2,
-                    }],
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { ticks: { color: '#a1a1aa' }, grid: { color: 'rgba(255, 255, 255, 0.06)' } },
-                        y: { ticks: { color: '#a1a1aa', callback: (v) => '$' + v }, grid: { color: 'rgba(255, 255, 255, 0.06)' } },
+            (function () {
+                const color = (name, alpha) => window.CSFloatTheme.color(name, alpha);
+
+                const chart = new Chart(document.getElementById('price-chart'), {
+                    type: 'line',
+                    data: {
+                        labels: @json($chart['labels']),
+                        datasets: [{
+                            label: 'Price ($)',
+                            data: @json($chart['prices']),
+                            borderColor: color('--accent-muted', 1),
+                            backgroundColor: color('--accent-muted', 0.1),
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 2,
+                        }],
                     },
-                    plugins: { legend: { labels: { color: '#e4e4e7' } } },
-                },
-            });
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                ticks: { color: color('--text-muted', 1) },
+                                grid: { color: color('--border', 0.6) },
+                            },
+                            y: {
+                                ticks: { color: color('--text-muted', 1), callback: (v) => '$' + v },
+                                grid: { color: color('--border', 0.6) },
+                            },
+                        },
+                        plugins: { legend: { labels: { color: color('--text', 1) } } },
+                    },
+                });
+
+                const recolor = () => {
+                    const dataset = chart.data.datasets[0];
+                    dataset.borderColor = color('--accent-muted', 1);
+                    dataset.backgroundColor = color('--accent-muted', 0.1);
+
+                    chart.options.scales.x.ticks.color = color('--text-muted', 1);
+                    chart.options.scales.x.grid.color = color('--border', 0.6);
+                    chart.options.scales.y.ticks.color = color('--text-muted', 1);
+                    chart.options.scales.y.grid.color = color('--border', 0.6);
+                    chart.options.plugins.legend.labels.color = color('--text', 1);
+
+                    chart.update();
+                };
+
+                document.addEventListener('themechange', recolor);
+            })();
         </script>
     @endif
 @endpush

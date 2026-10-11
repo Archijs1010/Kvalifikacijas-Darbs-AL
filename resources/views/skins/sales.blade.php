@@ -139,6 +139,7 @@
         <script>
             const points = @json($chart);
             const rangeDays = { '7': 7, '30': 30, '90': 90, 'all': null };
+            const t = (name, alpha) => window.CSFloatTheme.color(name, alpha);
 
             const idleClass = 'js-range rounded-lg px-3 py-1 text-sm text-zinc-400 hover:bg-zinc-800';
             const activeClass = 'js-range rounded-lg bg-sky-600 px-3 py-1 text-sm font-medium text-white';
@@ -205,8 +206,8 @@
                     datasets: [{
                         label: 'Price ($)',
                         data: [],
-                        borderColor: '#38bdf8',
-                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                        borderColor: t('--accent-muted', 1),
+                        backgroundColor: t('--accent-muted', 0.1),
                         fill: true,
                         tension: 0.3,
                         pointRadius: 2,
@@ -217,16 +218,16 @@
                     maintainAspectRatio: false,
                     scales: {
                         x: {
-                            ticks: { color: '#a1a1aa', autoSkip: false, maxRotation: 0 },
-                            grid: { color: 'rgba(255, 255, 255, 0.06)' },
+                            ticks: { color: t('--text-muted', 1), autoSkip: false, maxRotation: 0 },
+                            grid: { color: t('--border', 0.6) },
                         },
                         y: {
-                            ticks: { color: '#a1a1aa', callback: (value) => '$' + value },
-                            grid: { color: 'rgba(255, 255, 255, 0.06)' },
+                            ticks: { color: t('--text-muted', 1), callback: (value) => '$' + value },
+                            grid: { color: t('--border', 0.6) },
                         },
                     },
                     plugins: {
-                        legend: { labels: { color: '#e4e4e7' } },
+                        legend: { labels: { color: t('--text', 1) } },
                         tooltip: {
                             callbacks: {
                                 title: (items) => formatDate(currentDates[items[0].dataIndex] ?? ''),
@@ -243,8 +244,8 @@
                     datasets: [{
                         label: 'Sales',
                         data: [],
-                        backgroundColor: 'rgba(56, 189, 248, 0.65)',
-                        borderColor: '#38bdf8',
+                        backgroundColor: t('--accent-muted', 0.65),
+                        borderColor: t('--accent-muted', 1),
                         pointRadius: 3,
                     }],
                 },
@@ -254,18 +255,18 @@
                     scales: {
                         x: {
                             type: 'linear',
-                            title: { display: true, text: 'Float', color: '#a1a1aa' },
-                            ticks: { color: '#a1a1aa' },
-                            grid: { color: 'rgba(255, 255, 255, 0.06)' },
+                            title: { display: true, text: 'Float', color: t('--text-muted', 1) },
+                            ticks: { color: t('--text-muted', 1) },
+                            grid: { color: t('--border', 0.6) },
                         },
                         y: {
-                            title: { display: true, text: 'Price ($)', color: '#a1a1aa' },
-                            ticks: { color: '#a1a1aa', callback: (value) => '$' + value },
-                            grid: { color: 'rgba(255, 255, 255, 0.06)' },
+                            title: { display: true, text: 'Price ($)', color: t('--text-muted', 1) },
+                            ticks: { color: t('--text-muted', 1), callback: (value) => '$' + value },
+                            grid: { color: t('--border', 0.6) },
                         },
                     },
                     plugins: {
-                        legend: { labels: { color: '#e4e4e7' } },
+                        legend: { labels: { color: t('--text', 1) } },
                         tooltip: {
                             callbacks: {
                                 title: (items) => formatDate(items[0].raw.d ?? ''),
@@ -275,6 +276,33 @@
                     },
                 },
             });
+
+            const recolor = () => {
+                const line = chart.data.datasets[0];
+                line.borderColor = t('--accent-muted', 1);
+                line.backgroundColor = t('--accent-muted', 0.1);
+                chart.options.scales.x.ticks.color = t('--text-muted', 1);
+                chart.options.scales.x.grid.color = t('--border', 0.6);
+                chart.options.scales.y.ticks.color = t('--text-muted', 1);
+                chart.options.scales.y.grid.color = t('--border', 0.6);
+                chart.options.plugins.legend.labels.color = t('--text', 1);
+
+                const scatter = scatterChart.data.datasets[0];
+                scatter.backgroundColor = t('--accent-muted', 0.65);
+                scatter.borderColor = t('--accent-muted', 1);
+                scatterChart.options.scales.x.title.color = t('--text-muted', 1);
+                scatterChart.options.scales.x.ticks.color = t('--text-muted', 1);
+                scatterChart.options.scales.x.grid.color = t('--border', 0.6);
+                scatterChart.options.scales.y.title.color = t('--text-muted', 1);
+                scatterChart.options.scales.y.ticks.color = t('--text-muted', 1);
+                scatterChart.options.scales.y.grid.color = t('--border', 0.6);
+                scatterChart.options.plugins.legend.labels.color = t('--text', 1);
+
+                chart.update();
+                scatterChart.update();
+            };
+
+            document.addEventListener('themechange', recolor);
 
             const render = (range) => {
                 const data = withinRange(rangeDays[range]);
