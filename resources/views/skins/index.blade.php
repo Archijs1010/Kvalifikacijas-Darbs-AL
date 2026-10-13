@@ -1,8 +1,23 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between gap-4">
         <h1 class="text-xl font-semibold">Tracked Skins</h1>
+
+        <form method="GET" action="{{ route('skins.index') }}">
+            <label class="flex items-center gap-2 text-sm text-zinc-300">
+                <input type="checkbox" name="favorites" value="1" @checked($favoritesOnly)
+                       onchange="this.form.submit()"
+                       class="h-4 w-4 rounded border-zinc-700 bg-zinc-950 text-sky-600 focus:ring-sky-500">
+                Favorites only
+                <noscript>
+                    <button type="submit"
+                            class="rounded-lg border border-zinc-700 px-3 py-1 text-xs text-zinc-300 hover:text-sky-400">
+                        Apply
+                    </button>
+                </noscript>
+            </label>
+        </form>
     </div>
 
     <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
@@ -115,6 +130,17 @@
 
                     <td class="px-5 py-3">
                         <div class="flex items-center justify-end gap-4">
+                            <form method="POST" action="{{ route('skins.favorite', $skin) }}">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit"
+                                        title="{{ $skin->is_favorite ? 'Unpin' : 'Pin' }}"
+                                        aria-label="{{ $skin->is_favorite ? 'Unpin' : 'Pin' }} {{ $skin->market_hash_name }}"
+                                        class="text-lg leading-none {{ $skin->is_favorite ? 'text-amber-400' : 'text-zinc-600 hover:text-amber-400' }}">
+                                    {{ $skin->is_favorite ? '★' : '☆' }}
+                                </button>
+                            </form>
+
                             <form method="POST" action="{{ route('skins.toggle', $skin) }}">
                                 @csrf
                                 @method('PATCH')

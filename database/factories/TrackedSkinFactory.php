@@ -30,6 +30,7 @@ class TrackedSkinFactory extends Factory
             'min_float' => fake()->randomFloat(4, 0, 0.5),
             'max_float' => fake()->randomFloat(4, 0.5, 1),
             'enabled' => true,
+            'is_favorite' => false,
         ];
     }
 }

@@ -5,14 +5,24 @@ namespace App\Http\Controllers;
 use App\Http\Requests\TrackedSkinRequest;
 use App\Models\TrackedSkin;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class TrackedSkinController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $favoritesOnly = $request->boolean('favorites');
+
+        $skins = TrackedSkin::query()
+            ->when($favoritesOnly, fn ($query) => $query->where('is_favorite', true))
+            ->orderByDesc('is_favorite')
+            ->orderBy('market_hash_name')
+            ->get();
+
         return view('skins.index', [
-            'skins' => TrackedSkin::orderBy('market_hash_name')->get(),
+            'skins' => $skins,
+            'favoritesOnly' => $favoritesOnly,
         ]);
     }
 
@@ -59,5 +69,16 @@ class TrackedSkinController extends Controller
         return redirect()
             ->route('skins.index')
             ->with('status', "{$skin->market_hash_name} is now ".($skin->enabled ? 'enabled' : 'disabled').'.');
+    }
+
+    public function favorite(TrackedSkin $skin): RedirectResponse
+    {
+        $skin->update(['is_favorite' => ! $skin->is_favorite]);
+
+        return redirect()
+            ->route('skins.index', request()->only('favorites'))
+            ->with('status', $skin->is_favorite
+                ? "Pinned {$skin->market_hash_name}."
+                : "Unpinned {$skin->market_hash_name}.");
     }
 }

@@ -73,6 +73,7 @@ Route::get('/skins/{skin}/sales', function (Request $request, TrackedSkin $skin)
 })->name('skins.sales');
 
 Route::patch('/skins/{skin}/toggle', [TrackedSkinController::class, 'toggle'])->name('skins.toggle');
+Route::patch('/skins/{skin}/favorite', [TrackedSkinController::class, 'favorite'])->name('skins.favorite');
 Route::post('/skins/{skin}/import', ImportSkinSalesController::class)->name('skins.import');
 Route::delete('/skins/{skin}', [TrackedSkinController::class, 'destroy'])->name('skins.destroy');
 
