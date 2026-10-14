@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\TrackedSkinNoteRequest;
 use App\Http\Requests\TrackedSkinRequest;
 use App\Models\TrackedSkin;
 use Illuminate\Http\RedirectResponse;
@@ -80,5 +81,30 @@ class TrackedSkinController extends Controller
             ->with('status', $skin->is_favorite
                 ? "Pinned {$skin->market_hash_name}."
                 : "Unpinned {$skin->market_hash_name}.");
+    }
+
+    public function editNote(TrackedSkin $skin): View
+    {
+        return view('skins.note', [
+            'skin' => $skin,
+        ]);
+    }
+
+    public function updateNote(TrackedSkinNoteRequest $request, TrackedSkin $skin): RedirectResponse
+    {
+        $skin->update(['note' => $request->validated()['note'] ?? null]);
+
+        return redirect()
+            ->route('skins.index')
+            ->with('status', "Saved note for {$skin->market_hash_name}.");
+    }
+
+    public function destroyNote(TrackedSkin $skin): RedirectResponse
+    {
+        $skin->update(['note' => null]);
+
+        return redirect()
+            ->route('skins.index')
+            ->with('status', "Removed note for {$skin->market_hash_name}.");
     }
 }

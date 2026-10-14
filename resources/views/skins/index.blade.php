@@ -108,6 +108,9 @@
                 <tr class="border-b border-zinc-800/60 last:border-0">
                     <td class="px-5 py-3">
                         <a href="{{ route('skins.sales', $skin) }}" class="hover:text-sky-400">{{ $skin->market_hash_name }}</a>
+                        @if ($skin->note)
+                            <p class="mt-0.5 max-w-xs truncate text-xs text-zinc-500" title="{{ $skin->note }}">{{ $skin->note }}</p>
+                        @endif
                     </td>
                     <td class="px-5 py-3 text-zinc-400">{{ $skin->min_float ?? '—' }}</td>
                     <td class="px-5 py-3 text-zinc-400">{{ $skin->max_float ?? '—' }}</td>
@@ -152,6 +155,9 @@
 
                             <a href="{{ route('skins.edit', $skin) }}"
                                class="text-sm text-zinc-400 hover:text-sky-400">Edit</a>
+
+                            <a href="{{ route('skins.note.edit', $skin) }}"
+                               class="text-sm text-zinc-400 hover:text-sky-400">{{ $skin->note ? 'Edit note' : 'Add note' }}</a>
 
                             <form method="POST" action="{{ route('skins.destroy', $skin) }}"
                                   onsubmit="return confirm('Stop tracking {{ $skin->market_hash_name }}?');">
