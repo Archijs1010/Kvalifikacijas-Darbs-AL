@@ -43,6 +43,23 @@
         </div>
     </div>
 
+    <div class="mt-4 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+        <p class="text-xs uppercase tracking-wide text-zinc-500">Price change</p>
+        <p class="mt-1 text-xs text-zinc-500">Based on stored sales only. No new API requests are made.</p>
+
+        <div class="mt-4 grid gap-4 sm:grid-cols-3">
+            @foreach ([
+                '7-day' => $priceChanges['7d'],
+                '30-day' => $priceChanges['30d'],
+                'All-time' => $priceChanges['all'],
+            ] as $label => $change)
+                <div>
+                    @include('skins._price-change', ['label' => $label, 'change' => $change])
+                </div>
+            @endforeach
+        </div>
+    </div>
+
     <form method="GET" action="{{ route('skins.sales', $skin) }}"
           class="mt-4 flex flex-wrap items-end gap-3 rounded-xl border border-zinc-800 bg-zinc-900 p-4">
         <div class="flex flex-col gap-1">

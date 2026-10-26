@@ -6,6 +6,7 @@ use App\Http\Controllers\TrackedSkinController;
 use App\Models\ApiRequest;
 use App\Models\Sale;
 use App\Models\TrackedSkin;
+use App\Services\PriceChangeCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -69,6 +70,7 @@ Route::get('/skins/{skin}/sales', function (Request $request, TrackedSkin $skin)
             ->orderByDesc('sold_at')
             ->paginate(25)
             ->withQueryString(),
+        'priceChanges' => app(PriceChangeCalculator::class)->forSkin($skin),
     ]);
 })->name('skins.sales');
 
@@ -153,16 +155,19 @@ Route::get('/analytics', function (Request $request) {
         $query->where('market_hash_name', $selected);
     }
 
-    $points = $query->get(['sold_at', 'price']);
+    $points = $query->get(['sold_at', 'price', 'float_value']);
     $prices = $points->map(fn (Sale $sale) => (float) $sale->price);
 
     return view('analytics.index', [
         'skins' => $skins,
         'selected' => $selected,
-        'chart' => [
-            'labels' => $points->map(fn (Sale $sale) => $sale->sold_at?->format('M j, Y'))->all(),
-            'prices' => $prices->all(),
-        ],
+        'chart' => $points
+            ->map(fn (Sale $sale) => [
+                'date' => $sale->sold_at?->format('Y-m-d H:i:s'),
+                'price' => (float) $sale->price,
+                'float' => $sale->float_value === null ? null : (float) $sale->float_value,
+            ])
+            ->values(),
         'stats' => [
             'average' => $prices->isNotEmpty() ? round($prices->avg(), 2) : 0,
             'highest' => $prices->max() ?? 0,

@@ -1,22 +1,47 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="flex items-center justify-between gap-4">
+    <div class="flex flex-wrap items-end justify-between gap-4">
         <h1 class="text-xl font-semibold">Tracked Skins</h1>
 
-        <form method="GET" action="{{ route('skins.index') }}">
+        <form method="GET" action="{{ route('skins.index') }}"
+              class="flex flex-wrap items-end gap-3">
             <label class="flex items-center gap-2 text-sm text-zinc-300">
                 <input type="checkbox" name="favorites" value="1" @checked($favoritesOnly)
                        onchange="this.form.submit()"
                        class="h-4 w-4 rounded border-zinc-700 bg-zinc-950 text-sky-600 focus:ring-sky-500">
                 Favorites only
-                <noscript>
-                    <button type="submit"
-                            class="rounded-lg border border-zinc-700 px-3 py-1 text-xs text-zinc-300 hover:text-sky-400">
-                        Apply
-                    </button>
-                </noscript>
             </label>
+
+            <div class="flex flex-col gap-1">
+                <label for="sort" class="text-xs uppercase tracking-wide text-zinc-500">Sort by</label>
+                <select id="sort" name="sort" onchange="this.form.submit()"
+                        class="rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1 text-sm text-zinc-300 focus:border-sky-500 focus:outline-none">
+                    <option value="favorites" @selected($sort === 'favorites')>Favorites first</option>
+                    <option value="name" @selected($sort === 'name')>Skin name</option>
+                    <option value="latest_price" @selected($sort === 'latest_price')>Latest price</option>
+                    <option value="average_price" @selected($sort === 'average_price')>Average price</option>
+                    <option value="float" @selected($sort === 'float')>Float</option>
+                    <option value="sales_count" @selected($sort === 'sales_count')>Stored sales</option>
+                    <option value="latest_sale" @selected($sort === 'latest_sale')>Latest sale date</option>
+                </select>
+            </div>
+
+            <div class="flex flex-col gap-1">
+                <label for="direction" class="text-xs uppercase tracking-wide text-zinc-500">Direction</label>
+                <select id="direction" name="direction" onchange="this.form.submit()"
+                        class="rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1 text-sm text-zinc-300 focus:border-sky-500 focus:outline-none">
+                    <option value="asc" @selected($direction === 'asc')>Ascending</option>
+                    <option value="desc" @selected($direction === 'desc')>Descending</option>
+                </select>
+            </div>
+
+            <noscript>
+                <button type="submit"
+                        class="rounded-lg border border-zinc-700 px-3 py-1 text-xs text-zinc-300 hover:text-sky-400">
+                    Apply
+                </button>
+            </noscript>
         </form>
     </div>
 
@@ -99,6 +124,7 @@
                 <th class="px-5 py-3 font-medium">Max Float</th>
                 <th class="px-5 py-3 font-medium">Phase</th>
                 <th class="px-5 py-3 font-medium">Status</th>
+                <th class="px-5 py-3 font-medium">Price change</th>
                 <th class="px-5 py-3 font-medium">Import</th>
                 <th class="px-5 py-3 font-medium text-right">Actions</th>
             </tr>
@@ -121,6 +147,12 @@
                         @else
                             <span class="rounded-full bg-zinc-700/40 px-2.5 py-0.5 text-xs text-zinc-400">Disabled</span>
                         @endif
+                    </td>
+                    <td class="px-5 py-3 align-top">
+                        <div class="space-y-2">
+                            @include('skins._price-change', ['label' => '7d', 'change' => $priceChanges[$skin->id]['7d']])
+                            @include('skins._price-change', ['label' => '30d', 'change' => $priceChanges[$skin->id]['30d']])
+                        </div>
                     </td>
                     <td class="px-5 py-3 whitespace-nowrap">
                         <button type="button"
@@ -171,7 +203,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="px-5 py-8 text-center text-zinc-500">No tracked skins yet.</td>
+                    <td colspan="8" class="px-5 py-8 text-center text-zinc-500">No tracked skins yet.</td>
                 </tr>
             @endforelse
             </tbody>
