@@ -154,13 +154,13 @@
                             @include('skins._price-change', ['label' => '30d', 'change' => $priceChanges[$skin->id]['30d']])
                         </div>
                     </td>
-                    <td class="px-5 py-3 whitespace-nowrap">
+                    <td class="px-5 py-3 align-top">
                         <button type="button"
                                 class="js-import text-sm text-zinc-400 hover:text-sky-400 disabled:cursor-not-allowed disabled:opacity-50"
                                 data-url="{{ route('skins.import', $skin) }}">
                             Import
                         </button>
-                        <span class="js-import-status ml-2 text-xs"></span>
+                        <span class="js-import-status mt-1 block max-w-[12rem] text-xs leading-snug break-words"></span>
                     </td>
 
                     <td class="px-5 py-3">
@@ -216,10 +216,17 @@
         document.querySelectorAll('.js-import').forEach((btn) => {
             btn.addEventListener('click', async () => {
                 const status = btn.nextElementSibling;
+                const setStatus = (text, color, title = '') => {
+                    ['text-zinc-500', 'text-zinc-400', 'text-red-400', 'text-amber-400', 'text-emerald-400']
+                        .forEach((name) => status.classList.remove(name));
+                    status.classList.add(color);
+                    status.textContent = text;
+                    status.title = title;
+                };
+
                 btn.disabled = true;
                 btn.textContent = 'Importing…';
-                status.className = 'js-import-status ml-2 text-xs text-zinc-500';
-                status.textContent = '';
+                setStatus('', 'text-zinc-500');
 
                 try {
                     const res = await fetch(btn.dataset.url, {
@@ -232,20 +239,23 @@
                     const data = await res.json();
 
                     if (!res.ok) {
-                        status.className = 'js-import-status ml-2 text-xs '
-                            + (data.rate_limited ? 'text-amber-400' : 'text-red-400');
-                        status.textContent = data.message || 'Import failed.';
-                        status.title = data.category === 'auth'
-                            ? 'The server-side CSFloat API key was rejected.'
-                            : '';
+                        setStatus(
+                            data.message || 'Import failed.',
+                            data.rate_limited ? 'text-amber-400' : 'text-red-400',
+                            data.category === 'auth'
+                                ? 'The server-side CSFloat API key was rejected.'
+                                : ''
+                        );
                         return;
                     }
 
                     if (data.no_sales) {
-                        status.className = 'js-import-status ml-2 text-xs text-amber-400';
-                        status.textContent = 'No sales found for this name';
-                        status.title = 'CSFloat has no sales recorded for this exact market hash '
-                            + 'name. Check the star (★) and the wear suffix — they must match exactly.';
+                        setStatus(
+                            'No sales found for this name',
+                            'text-amber-400',
+                            'CSFloat has no sales recorded for this exact market hash '
+                                + 'name. Check the star (★) and the wear suffix — they must match exactly.'
+                        );
                     } else {
                         const parts = [`Imported ${data.imported}`];
                         if (data.skipped_wrong_phase) parts.push(`${data.skipped_wrong_phase} wrong phase`);
@@ -254,15 +264,10 @@
                         if (data.skipped_malformed) parts.push(`${data.skipped_malformed} unreadable`);
                         if (parts.length === 1 && data.skipped) parts.push(`Skipped ${data.skipped}`);
 
-                        status.className = 'js-import-status ml-2 text-xs '
-                            + (data.imported > 0 ? 'text-emerald-400' : 'text-zinc-400');
-                        status.textContent = parts.join(' · ');
-                        status.title = '';
+                        setStatus(parts.join(' · '), data.imported > 0 ? 'text-emerald-400' : 'text-zinc-400');
                     }
                 } catch {
-                    status.className = 'js-import-status ml-2 text-xs text-red-400';
-                    status.textContent = 'Import failed.';
-                    status.title = '';
+                    setStatus('Import failed.', 'text-red-400');
                 } finally {
                     btn.disabled = false;
                     btn.textContent = 'Import';
