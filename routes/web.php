@@ -118,10 +118,22 @@ Route::get('/sales', function (Request $request) {
         $query->where('sold_at', '<=', $to.' 23:59:59');
     }
 
+    $phaseOrder = [
+        'Phase 1', 'Phase 2', 'Phase 3', 'Phase 4',
+        'Ruby', 'Sapphire', 'Black Pearl', 'Emerald',
+    ];
+
+    $phases = collect($phaseOrder)
+        ->merge(Sale::query()->whereNotNull('phase')->distinct()->pluck('phase'))
+        ->reject(fn (string $phase) => mb_strtolower($phase) === 'pearl')
+        ->unique(fn (string $phase) => mb_strtolower($phase))
+        ->values()
+        ->all();
+
     return view('sales.index', [
         'sales' => $query->orderByDesc('sold_at')->paginate(25)->withQueryString(),
         'skins' => TrackedSkin::orderBy('market_hash_name')->pluck('market_hash_name'),
-        'phases' => Sale::query()->whereNotNull('phase')->distinct()->orderBy('phase')->pluck('phase'),
+        'phases' => $phases,
         'filters' => $request->only([
             'skin',
             'min_float',
