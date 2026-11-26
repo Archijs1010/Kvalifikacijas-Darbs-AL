@@ -38,6 +38,25 @@ Route::get('/skins/{skin}/sales', function (Request $request, TrackedSkin $skin)
         $filtered->where('float_value', '<=', $maxFloat);
     }
 
+    $sortColumns = [
+        'phase' => 'phase',
+        'price' => 'price',
+        'float' => 'float_value',
+        'seed' => 'paint_seed',
+    ];
+
+    $sort = $request->input('sort');
+    $sort = is_string($sort) && array_key_exists($sort, $sortColumns) ? $sort : null;
+    $direction = $request->input('direction') === 'desc' ? 'desc' : 'asc';
+
+    $salesQuery = clone $filtered;
+
+    if ($sort === null) {
+        $salesQuery->orderByDesc('sold_at');
+    } else {
+        $salesQuery->orderBy($sortColumns[$sort], $direction)->orderByDesc('sold_at');
+    }
+
     $stored = (clone $filtered)
         ->orderBy('sold_at')
         ->get(['sold_at', 'price', 'float_value']);
@@ -49,6 +68,8 @@ Route::get('/skins/{skin}/sales', function (Request $request, TrackedSkin $skin)
         'filters' => [
             'min_float' => $minFloat,
             'max_float' => $maxFloat,
+            'sort' => $sort,
+            'direction' => $direction,
         ],
         'hasSales' => Sale::query()->where('market_hash_name', $skin->market_hash_name)->exists(),
         'stats' => [
@@ -66,8 +87,7 @@ Route::get('/skins/{skin}/sales', function (Request $request, TrackedSkin $skin)
                 'float' => $sale->float_value === null ? null : (float) $sale->float_value,
             ])
             ->values(),
-        'sales' => (clone $filtered)
-            ->orderByDesc('sold_at')
+        'sales' => $salesQuery
             ->paginate(25)
             ->withQueryString(),
         'priceChanges' => app(PriceChangeCalculator::class)->forSkin($skin),

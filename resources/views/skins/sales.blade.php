@@ -10,6 +10,25 @@
             $skin->min_float === null => '≤ '.$skin->max_float,
             default => $skin->min_float.' – '.$skin->max_float,
         };
+
+        $sortQuery = function (string $column) use ($filters, $skin): array {
+            $nextDirection = ($filters['sort'] ?? '') === $column && ($filters['direction'] ?? '') === 'asc'
+                ? 'desc'
+                : 'asc';
+
+            return array_merge(['skin' => $skin], $filters, [
+                'sort' => $column,
+                'direction' => $nextDirection,
+            ]);
+        };
+
+        $sortLabel = function (string $column) use ($filters): string {
+            if (($filters['sort'] ?? '') !== $column) {
+                return '';
+            }
+
+            return ($filters['direction'] ?? '') === 'asc' ? ' ↑' : ' ↓';
+        };
     @endphp
 
     <a href="{{ route('skins.index') }}" class="text-sm text-zinc-500 hover:text-zinc-300">&larr; Tracked skins</a>
@@ -121,10 +140,22 @@
             <thead>
             <tr class="border-b border-zinc-800 text-left text-xs uppercase tracking-wide text-zinc-500">
                 <th class="px-5 py-3 font-medium">Date</th>
-                <th class="px-5 py-3 font-medium">Phase</th>
-                <th class="px-5 py-3 font-medium text-right">Price</th>
-                <th class="px-5 py-3 font-medium text-right">Float</th>
-                <th class="px-5 py-3 font-medium text-right">Seed</th>
+                <th class="px-5 py-3 font-medium">
+                    <a href="{{ route('skins.sales', $sortQuery('phase')) }}"
+                       class="hover:text-sky-400 {{ ($filters['sort'] ?? '') === 'phase' ? 'text-sky-400' : '' }}">Phase{{ $sortLabel('phase') }}</a>
+                </th>
+                <th class="px-5 py-3 text-right font-medium">
+                    <a href="{{ route('skins.sales', $sortQuery('price')) }}"
+                       class="hover:text-sky-400 {{ ($filters['sort'] ?? '') === 'price' ? 'text-sky-400' : '' }}">Price{{ $sortLabel('price') }}</a>
+                </th>
+                <th class="px-5 py-3 text-right font-medium">
+                    <a href="{{ route('skins.sales', $sortQuery('float')) }}"
+                       class="hover:text-sky-400 {{ ($filters['sort'] ?? '') === 'float' ? 'text-sky-400' : '' }}">Float{{ $sortLabel('float') }}</a>
+                </th>
+                <th class="px-5 py-3 text-right font-medium">
+                    <a href="{{ route('skins.sales', $sortQuery('seed')) }}"
+                       class="hover:text-sky-400 {{ ($filters['sort'] ?? '') === 'seed' ? 'text-sky-400' : '' }}">Seed{{ $sortLabel('seed') }}</a>
+                </th>
             </tr>
             </thead>
             <tbody>
