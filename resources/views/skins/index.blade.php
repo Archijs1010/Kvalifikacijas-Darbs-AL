@@ -49,7 +49,7 @@
         <h2 class="text-sm font-medium">Add a skin</h2>
 
         <form method="POST" action="{{ route('skins.store') }}"
-              class="mt-4 grid gap-4 sm:grid-cols-[1fr_8rem_8rem_9rem_auto] sm:items-end">
+              class="mt-4 grid gap-4 sm:grid-cols-[1fr_7rem_7rem_8rem_auto_auto] sm:items-end">
             @csrf
             @include('skins._phase-options')
 
@@ -62,12 +62,6 @@
                 @error('market_hash_name')
                     <p class="text-xs text-red-400">{{ $message }}</p>
                 @enderror
-                <p class="text-xs text-zinc-500">
-                    Must match the CSFloat name exactly, including the star
-                    (<span class="text-zinc-300">★</span>) and the wear suffix.
-                    Example: <span class="text-zinc-300">★ Karambit | Doppler (Factory New)</span>
-                    or <span class="text-zinc-300">AK-47 | Redline (Field-Tested)</span>.
-                </p>
             </div>
 
             <div class="flex flex-col gap-1">
@@ -112,6 +106,13 @@
                     class="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500">
                 Add skin
             </button>
+
+            <p class="text-xs text-zinc-500 sm:col-span-6">
+                Must match the CSFloat name exactly, including the star
+                (<span class="text-zinc-300">★</span>) and the wear suffix.
+                Example: <span class="text-zinc-300">★ Karambit | Doppler (Factory New)</span>
+                or <span class="text-zinc-300">AK-47 | Redline (Field-Tested)</span>.
+            </p>
         </form>
     </div>
 
