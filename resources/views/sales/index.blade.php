@@ -80,15 +80,45 @@
     </form>
 
     <div class="rounded-xl border border-zinc-800 bg-zinc-900">
+        @php
+            $sortQuery = function (string $column) use ($filters): array {
+                $nextDirection = ($filters['sort'] ?? '') === $column && ($filters['direction'] ?? '') === 'asc'
+                    ? 'desc'
+                    : 'asc';
+
+                return array_merge($filters, [
+                    'sort' => $column,
+                    'direction' => $nextDirection,
+                ]);
+            };
+
+            $sortLabel = function (string $column) use ($filters): string {
+                if (($filters['sort'] ?? '') !== $column) {
+                    return '';
+                }
+
+                return ($filters['direction'] ?? '') === 'asc' ? ' ↑' : ' ↓';
+            };
+        @endphp
+
         <table class="w-full text-sm">
             <thead>
             <tr class="border-b border-zinc-800 text-left text-xs uppercase tracking-wide text-zinc-500">
                 <th class="px-5 py-3 font-medium">Date</th>
                 <th class="px-5 py-3 font-medium">Skin</th>
                 <th class="px-5 py-3 font-medium">Phase</th>
-                <th class="px-5 py-3 font-medium text-right">Price</th>
-                <th class="px-5 py-3 font-medium text-right">Float</th>
-                <th class="px-5 py-3 font-medium text-right">Seed</th>
+                <th class="px-5 py-3 text-right font-medium">
+                    <a href="{{ route('sales.index', $sortQuery('price')) }}"
+                       class="hover:text-sky-400 {{ ($filters['sort'] ?? '') === 'price' ? 'text-sky-400' : '' }}">Price{{ $sortLabel('price') }}</a>
+                </th>
+                <th class="px-5 py-3 text-right font-medium">
+                    <a href="{{ route('sales.index', $sortQuery('float')) }}"
+                       class="hover:text-sky-400 {{ ($filters['sort'] ?? '') === 'float' ? 'text-sky-400' : '' }}">Float{{ $sortLabel('float') }}</a>
+                </th>
+                <th class="px-5 py-3 text-right font-medium">
+                    <a href="{{ route('sales.index', $sortQuery('seed')) }}"
+                       class="hover:text-sky-400 {{ ($filters['sort'] ?? '') === 'seed' ? 'text-sky-400' : '' }}">Seed{{ $sortLabel('seed') }}</a>
+                </th>
             </tr>
             </thead>
             <tbody>

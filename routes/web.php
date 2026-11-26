@@ -118,6 +118,22 @@ Route::get('/sales', function (Request $request) {
         $query->where('sold_at', '<=', $to.' 23:59:59');
     }
 
+    $sortColumns = [
+        'price' => 'price',
+        'float' => 'float_value',
+        'seed' => 'paint_seed',
+    ];
+
+    $sort = $request->input('sort');
+    $sort = is_string($sort) && array_key_exists($sort, $sortColumns) ? $sort : null;
+    $direction = $request->input('direction') === 'desc' ? 'desc' : 'asc';
+
+    if ($sort === null) {
+        $query->orderByDesc('sold_at');
+    } else {
+        $query->orderBy($sortColumns[$sort], $direction)->orderByDesc('sold_at');
+    }
+
     $phaseOrder = [
         'Phase 1', 'Phase 2', 'Phase 3', 'Phase 4',
         'Ruby', 'Sapphire', 'Black Pearl', 'Emerald',
@@ -131,10 +147,10 @@ Route::get('/sales', function (Request $request) {
         ->all();
 
     return view('sales.index', [
-        'sales' => $query->orderByDesc('sold_at')->paginate(25)->withQueryString(),
+        'sales' => $query->paginate(25)->withQueryString(),
         'skins' => TrackedSkin::orderBy('market_hash_name')->pluck('market_hash_name'),
         'phases' => $phases,
-        'filters' => $request->only([
+        'filters' => array_merge($request->only([
             'skin',
             'min_float',
             'max_float',
@@ -143,6 +159,11 @@ Route::get('/sales', function (Request $request) {
             'phase',
             'from',
             'to',
+            'sort',
+            'direction',
+        ]), [
+            'sort' => $sort,
+            'direction' => $direction,
         ]),
     ]);
 })->name('sales.index');
